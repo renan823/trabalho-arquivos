@@ -1,6 +1,8 @@
 #ifndef REGISTRO_H_
     #define REGISTRO_H_
 
+    #include "cabecalho.h"
+
     /*
     Registro do arquivo de dados.
 
@@ -43,4 +45,6 @@
     };
 
     REGISTRO *CriarRegistroVazio(void);
+
+    void ExibirRegistro(REGISTRO *reg, CABECALHO *c);
 #endif

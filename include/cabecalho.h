@@ -48,5 +48,6 @@
     CABECALHO *CriarCabecalhoPadrao(void);
     void ApagarCabecalho(CABECALHO **c);
 
+    CABECALHO *LerCabecalho(FILE **arquivo);
     void EscreverCabecalho(FILE **arquivo, CABECALHO *c);
 #endif

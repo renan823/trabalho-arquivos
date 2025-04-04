@@ -34,6 +34,24 @@ CABECALHO *CriarCabecalhoPadrao(void) {
     return c;
 }
 
+/*
+Função que lê o cabeçalho do arquivo informado
+*/
+
+CABECALHO *LerCabecalho(FILE **arquivo) {
+    if (*arquivo == NULL) {
+        return NULL;
+    }
+
+    CABECALHO *c = (CABECALHO*) malloc(sizeof(CABECALHO));
+
+    if (c != NULL) {
+        fread(c, 276, 1, *arquivo);
+    }
+
+    return c;
+}
+
 /* 
 Função que escreve o cabeçalho de dados no arquivo informado
 */
