@@ -45,12 +45,55 @@ struct cabecalho {
 };
 
 /*
+Registro do arquivo de dados.
+
+- Gerenciamento de registros logicamente removidos:
+
+removido: 1 registro logicamente removido, 0 registro não marcado como removido(char - 1 byte)
+tamanhoRegistro: nº bytes do registro(inteiro - 4 bytes)
+prox: byte offset do próximo registro removido(long int - 8 bytes)
+
+- Campos de tamanho fixo:
+
+idAttack: código identificador do ataque(inteiro - 4 bytes)
+year: ano em que o ataque ocorreu(inteiro - 4 bytes)
+financialLoss: prejuízo causado pelo ataque(float - 4 bytes)
+
+- Campos de tamanho variável:
+
+country: país onde ocorreu o ataque(string)
+attackType: tipo de ameaça a segunrança cibernética(string)
+targetIndustry: setor da indústria que sofreu o ataque(string)
+defenseMechanism: estratégia de defesa cibernética empregada para resolver o problema(string)
+*/
+
+typedef struct registro REGISTRO;
+
+struct REGISTRO {
+    // Gerenciamento
+    char removido;
+    int tamanhoRegistro;
+    long int prox;
+    // Tamanho fixo
+    int idAttack;
+    int year;
+    float financialLoss;
+    // Tamanho variável
+    char *country; 
+    char *attackType; 
+    char *targetIndustry; 
+    char *defenseMechanism; 
+};
+
+/*
 Função para gerar um cabeçalho de dados padrão.
 */
 CABECALHO *CriarCabecalhoPadrao(void) {
     CABECALHO *c = (CABECALHO*) malloc(sizeof(CABECALHO));
 
+    // Se houver espaço na memória heap
     if (c != NULL) {
+        // Inicializar campos do cabecalho
         c->status = '1';
         c->topo = -1;
         c->proxByteOffset = 0;
@@ -73,39 +116,147 @@ CABECALHO *CriarCabecalhoPadrao(void) {
 }
 
 /* 
-Escreve o cabeçalho de dados no arquivo informado
+Função que escreve o cabeçalho de dados no arquivo informado
 */
-void EscreverCabecalho(FILE *arquivo, CABECALHO *c) {
-    if (arquivo == NULL || c == NULL) {
+void EscreverCabecalho(FILE **arquivo, CABECALHO *c) {
+    if (*arquivo == NULL || c == NULL) {
         return;
     }
 
     // Escrever dados
-    fwrite(&(c->status), sizeof(char), 1, arquivo);
-    fwrite(&(c->topo), sizeof(long int), 1, arquivo);
-    fwrite(&(c->proxByteOffset), sizeof(long int), 1, arquivo);
-    fwrite(&(c->nroRegArq), sizeof(int), 1, arquivo);
-    fwrite(&(c->nroRegRem), sizeof(int), 1, arquivo);
-    fwrite(c->descreveIdentificador, sizeof(char), 23, arquivo);
-    fwrite(c->descreveYear, sizeof(char), 27, arquivo);
-    fwrite(c->descreveFinancialLoss, sizeof(char), 28, arquivo);
-    fwrite(&(c->codDescreveCountry), sizeof(char), 1, arquivo);
-    fwrite(c->descreveCountry, sizeof(char), 26, arquivo);
-    fwrite(&(c->codDescreveType), sizeof(char), 1, arquivo);
-    fwrite(c->descreveType, sizeof(char), 38, arquivo);
-    fwrite(&(c->codDescreveTargetIndustry), sizeof(char), 1, arquivo);
-    fwrite(c->descreveTargetIndustry, sizeof(char), 38, arquivo);
-    fwrite(&(c->codDescreveDefense), sizeof(char), 1, arquivo);
-    fwrite(c->descreveDefense, sizeof(char), 67, arquivo);
+    fwrite(&(c->status), sizeof(char), 1, *arquivo);
+    fwrite(&(c->topo), sizeof(long int), 1, *arquivo);
+    fwrite(&(c->proxByteOffset), sizeof(long int), 1, *arquivo);
+    fwrite(&(c->nroRegArq), sizeof(int), 1, *arquivo);
+    fwrite(&(c->nroRegRem), sizeof(int), 1, *arquivo);
+    fwrite(c->descreveIdentificador, sizeof(char), 23, *arquivo);
+    fwrite(c->descreveYear, sizeof(char), 27, *arquivo);
+    fwrite(c->descreveFinancialLoss, sizeof(char), 28, *arquivo);
+    fwrite(&(c->codDescreveCountry), sizeof(char), 1, *arquivo);
+    fwrite(c->descreveCountry, sizeof(char), 26, *arquivo);
+    fwrite(&(c->codDescreveType), sizeof(char), 1, *arquivo);
+    fwrite(c->descreveType, sizeof(char), 38, *arquivo);
+    fwrite(&(c->codDescreveTargetIndustry), sizeof(char), 1, *arquivo);
+    fwrite(c->descreveTargetIndustry, sizeof(char), 38, *arquivo);
+    fwrite(&(c->codDescreveDefense), sizeof(char), 1, *arquivo);
+    fwrite(c->descreveDefense, sizeof(char), 67, *arquivo);
+
+}
+
+/* 
+Função que libera espaço alocado par ao cabecalho na heap
+*/
+void ApagarCabecalho(CABECALHO **c){
+    // Verificar se endereço passado é nulo
+    if(c != NULL){
+        // Verificar se cabecalho existe
+        if(*c != NULL){
+            // Liberar memoria do cabecalho
+            free(*c);
+            *c = NULL; // Evita ponteiro selvagem
+        }
+    }
+}
+
+/* 
+Função que le registros em um CSV e armazena em um arquivo binário
+*/
+void LerCsvSalvarBin(){
+    // Ler nome dos arquivos de entrada e saída.
+    char *nomeArquivoEntrada = LerString();
+    char *nomeArquivoSaida = LerString();
+    // Abrir arquivos de entrada e saída
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "r");
+    FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb");
+    
+    // Escreve cabecalho em binario no arquivo de saida
+    CABECALHO *cabecalho =  CriarCabecalhoPadrao();
+    EscreverCabecalho(&arquivoSaida, cabecalho);
+    ApagarCabecalho(&cabecalho);
+
+    // Transferir dados de um arquivo para o outro
+    int tamBuffer = 100;
+    char *buffer = (char*) malloc(sizeof(char)*tamBuffer);
+    int tamLinha;
+
+    // Eliminar introdução do arquivo CSV
+    tamLinha = TamanhoLinha(arquivoEntrada);
+    // Seta ponteiro em cima do \n
+    arquivoEntrada += (tamLinha - 1); 
+    // Lê o \n para chegar na primeira linha do arquivo
+    fread(buffer, sizeof(char), 1, arquivoEntrada);
+
+    // Retorna tamanho da linha e não altera o ponteiro.
+    // Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
+    while((tamLinha = TamanhoLinha(arquivoEntrada)) != 0){
+        // Verifica se o tamanho atual do buffer é suficiente
+        while(tamLinha >= buffer){
+            free(buffer);
+            // Aumenta tamanho do buffer em 50
+            tamBuffer = tamBuffer + 50;
+            buffer = (char*) malloc(sizeof(char)*tamBuffer);
+        }
+        // Ler dados do arquivo de entrada no buffer
+        fread(buffer, sizeof(char), tamLinha, arquivoEntrada);
+        // TODO: formatar dados para serem salvos em binário
+        // Adicionar função preencher registro passando buffer
+        // TODO: escrever no arquivo de saida
+        // Adicionar função inserir registro em arquivo binário        
+    };
+
+}
+
+// Retorna tamanho em bytes da linha a ser lida(0 caso chegue no final)
+int TamanhoLinha(FILE *arquivoAberto){
+    int tamLinha = 0;
+    char byteAtual;
+    // Retorna 1 se conseguiu ler o caracter, se não conseguiu, chegou-se ao final do arquivo.
+    while(1 == fread(&byteAtual, sizeof(char), 1, arquivoAberto)){
+        tamLinha++;
+        if(byteAtual == '\n') break;
+    }
+    return tamLinha;
+}
+
+// Função lê uma string sem desperdício de memória
+char *LerString(void){
+    char buffer[100];
+    char *stringDinamica;
+
+    scanf(" %s", buffer);
+    // Retorna tamanho da string sem o \0
+    int tamString = strlen(buffer);
+
+    // Alocar espaço na heap para a tamString + \0
+    stringDinamica = (char*) malloc(sizeof(char)*(tamString + 1));
+    strcpy(stringDinamica, buffer);
+    // Garante \0 no final da string
+    stringDinamica[tamString] = '\0';
+
+    return stringDinamica;
 }
 
 int main(void) {
     FILE *arquivo = fopen("teste.bin", "rb");
 
-    char buffer[276];
-    fread(buffer, 1, 276, arquivo);
-    
-    fwrite(buffer, 1, 276, stdout);
+    // Ler funcionalidade selecionada e nome arquivo de entrada
+    int funcionalidade;
+    scanf("%d", &funcionalidade);
+
+    switch (funcionalidade){
+        case 1:
+            LerCsvSalvarBin();
+            break;
+        case 2:
+            // TODO: SELECT 
+            break;
+        case 3:
+            // TODO: WHERE
+            break;
+
+        default:
+            break;
+    }    
 
     fclose(arquivo);
 
