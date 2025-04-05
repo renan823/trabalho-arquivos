@@ -45,6 +45,9 @@
     };
 
     REGISTRO *CriarRegistroVazio(void);
-
     void ExibirRegistro(REGISTRO *reg);
+    void ApagarRegistro(REGISTRO **reg);
+    void PreencherRegistro(REGISTRO **reg,char *buffer);
+    void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg);
+
 #endif

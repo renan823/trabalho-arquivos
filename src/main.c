@@ -53,138 +53,10 @@ char *LerString(void){
     return stringDinamica;
 }
 
-
-void PreencherRegistro(REGISTRO **reg,char *buffer){
-    /*
-    Manejo strok() - tirado site da IBM
-    conteudo = strtok(linha do csv, delimitador).
-    OBS: a cada chamada substitui o delimitador por um caracter nulo.
-    Exemplo de execução de 3 strtoks:
-    buffer("juan,20,santos") -> buffer("juan\020\0santos\0")
-    Para chamadas em que a linha é nula,
-    continua da onde parou no argumento não nulo mais recente.
-    OBS: se o conteúdo é nulo(",,"), ele pula para o próximo.
-    Caso não ache o delimitador(exemplo no final), outro caracter 
-    de parada é o '\0'.
-    OBS: ele ignora conteudo vazios e busca conteudos.
-    */
-    // Sumir com os delimitadores
-    strtok(buffer, ",");
-    while(strtok(NULL, ","));
-
-    // Var. aux que ajuda a verificar campo vazio no buffer
-    char *linha = buffer;
-    
-    // Campo 1: id do ataque(int)
-    if(*linha != ','){
-        // Armazenar id como inteiro
-        (*reg)->idAttack = atoi(linha);
-        // Andar tamanho do conteúdo
-        linha += strlen(linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 2: year(int)
-    if(*linha != ','){
-        (*reg)->year = atoi(linha);
-        // Andar tamanho do conteúdo como string
-        linha += strlen(linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 3: financialLoss(float)
-    if(*linha != ','){
-        (*reg)->financialLoss = atof(linha);
-        // Andar tamanho do conteúdo como string
-        linha += strlen(linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Armazenar tamanho dos campos variaveis
-    int tamCamposVariaveis = 0;
-
-    // Campo 4: country(strlen(country))
-    if(*linha != ','){
-        // Guarda conteúdo registro 
-        int tamString = strlen(linha);
-        // Aloca espaço string + '\0'
-        char *string = (char*) malloc(sizeof(char)*(tamString + 1));
-        strcpy(string, linha);
-        // Garante \0
-        string[tamString] = '\0';
-        (*reg)->country = string; // Salva no registro.
-        // Add  ao tamanho do registro
-        tamCamposVariaveis += tamString;
-        // Andar tamanho do conteúdo como string
-        linha += tamString;
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-    
-    // Campo 5: attackType(strlen(attackType))
-    if(*linha != ','){
-        // Guarda conteúdo registro 
-        int tamString = strlen(linha);
-        // Aloca espaço string + '\0'
-        char *string = (char*) malloc(sizeof(char)*(tamString + 1));
-        strcpy(string, linha);
-        // Garante \0
-        string[tamString] = '\0';
-        (*reg)->attackType = string; // Salva no registro.
-        // Add  ao tamanho do registro
-        tamCamposVariaveis  += tamString;
-        // Andar tamanho do conteúdo como string
-        linha += tamString;
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 6: targetIndustry(strlen(targetIndustry))
-    if(*linha != ','){
-        // Guarda conteúdo registro 
-        int tamString = strlen(linha);
-        // Aloca espaço string + '\0'
-        char *string = (char*) malloc(sizeof(char)*(tamString + 1));
-        strcpy(string, linha);
-        // Garante \0
-        string[tamString] = '\0';
-        (*reg)->targetIndustry = string; // Salva no registro.
-        // Add  ao tamanho do registro
-        tamCamposVariaveis += tamString;
-        // Andar tamanho do conteúdo como string
-        linha += tamString;
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 7: defenseMechanism(strlen(defenseMechanism))
-    if(*linha != ','){
-        // Guarda conteúdo registro 
-        int tamString = strlen(linha);
-        // Aloca espaço string + '\0'
-        char *string = (char*) malloc(sizeof(char)*(tamString + 1));
-        strcpy(string, linha);
-        // Garante \0
-        string[tamString] = '\0';
-        (*reg)->defenseMechanism = string; // Salva no registro.
-        // Add  ao tamanho do registro
-        tamCamposVariaveis += tamString;
-        // Andar tamanho do conteúdo como string
-        linha += tamString;
-    }
-
-    ExibirRegistro(*reg);
-
-    return;
-}
-
 /* 
 Função que le registros em um CSV e armazena em um arquivo binário
 */
-void LerCsvSalvarBin(){
+void FUNCIONALIDADE1(){
     // Ler nome dos arquivos de entrada e saída.
     char *nomeArquivoEntrada = LerString();
     char *nomeArquivoSaida = LerString();
@@ -207,13 +79,24 @@ void LerCsvSalvarBin(){
     // Retorna tamanho da linha e não altera o ponteiro.
     // Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
     while(PegarLinha(&buffer, tamBuffer, arquivoEntrada)){
+        // Preencher registro passando buffer
         REGISTRO *reg = CriarRegistroVazio();
         PreencherRegistro(&reg, buffer);
-        // Adicionar função preencher registro passando buffer
-        // TODO: escrever no arquivo de saida
-        // Adicionar função inserir registro em arquivo binário        
+        // Inserir registro em arquivo binário        
+        EscreverRegistro(&arquivoSaida, reg);
+        // Apagar registro
+        ApagarRegistro(&reg);
     };
 
+    // Liberar memória do buffer
+    free(buffer);
+    buffer = NULL;
+
+    // Fechar arquivos de entrada e saída
+    fclose(arquivoEntrada);
+    fclose(arquivoSaida);
+    
+    return;
 }
 
 int main(void) {
@@ -225,7 +108,7 @@ int main(void) {
 
     switch (funcionalidade){
         case 1:
-            LerCsvSalvarBin();
+            FUNCIONALIDADE1();
             break;
         case 2:
             // TODO: SELECT 
