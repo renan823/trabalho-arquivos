@@ -16,16 +16,34 @@ REGISTRO *CriarRegistroVazio(void) {
 
     if (reg == NULL) {
         //erro!
-    }
+    } 
+    reg->removido = '0';
+    // Tamanho fixo do registro
+    reg->tamanhoRegistro = 20;
+    // Inicializar campos fixos com -1.
+    reg->prox = -1;
+    reg->idAttack = -1;
+    reg->year = -1;
+    reg->financialLoss = -1;
+    // Campos variaveis setar para NULL
+    reg->country = NULL; 
+    reg->attackType = NULL; 
+    reg->targetIndustry = NULL; 
+    reg->defenseMechanism = NULL;
 
     return reg;
 }
 
 /*
 Exibe os campos do regsitro, cuidando de valores nulos/vazios.
+// Função precisa ser ajustada para ler o cabeçalho do arquivo, pois o criar cabelho cria se \0,
+ou seja, ao tentar printar como string, printa todo o arquivo.
 */
-void ExibirRegistro(REGISTRO *reg, CABECALHO *c) {
+/*
+void ExibirRegistro(REGISTRO *reg) {
+    CABECALHO *c = CriarCabecalhoPadrao();
     if (reg == NULL || c == NULL) {
+        // erro!
         return;
     }
 
@@ -50,6 +68,9 @@ void ExibirRegistro(REGISTRO *reg, CABECALHO *c) {
 
     printf("%s: %s\n", c->descreveDefense, reg->defenseMechanism == NULL ? MSG_VAZIO : reg->defenseMechanism);
 
+    ApagarCabecalho(&c);
+
     // Pular linha
     printf("\n");
 }
+*/

@@ -46,5 +46,5 @@
 
     REGISTRO *CriarRegistroVazio(void);
 
-    void ExibirRegistro(REGISTRO *reg, CABECALHO *c);
+    void ExibirRegistro(REGISTRO *reg);
 #endif
