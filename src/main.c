@@ -12,7 +12,8 @@ int TamanhoLinha(FILE *arquivoAberto){
     // Retorna 1 se conseguiu ler o caracter, se não conseguiu, chegou-se ao final do arquivo.
     while(1 == fread(&byteAtual, sizeof(char), 1, arquivoAberto)){
         tamLinha++;
-        if(byteAtual == '\n') break;
+        // Arquivo CSV tem conteúdo encerrado em \n ou \r
+        if(byteAtual == '\r' || byteAtual == '\n') break;
     }
     return tamLinha;
 }
@@ -59,10 +60,8 @@ void LerCsvSalvarBin(){
     // Eliminar introdução do arquivo CSV
     tamLinha = TamanhoLinha(arquivoEntrada);
     // Seta ponteiro em cima do \n
-    arquivoEntrada += (tamLinha - 1); 
-    // Lê o \n para chegar na primeira linha do arquivo
-    fread(buffer, sizeof(char), 1, arquivoEntrada);
-
+    // Ultimo caracter lido foi o \r 
+    
     // Retorna tamanho da linha e não altera o ponteiro.
     // Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
     while((tamLinha = TamanhoLinha(arquivoEntrada)) != 0){
@@ -74,8 +73,9 @@ void LerCsvSalvarBin(){
             buffer = (char*) malloc(sizeof(char)*tamBuffer);
         }
         // Ler dados do arquivo de entrada no buffer
-        fread(buffer, sizeof(char), tamLinha, arquivoEntrada);
+        fread(buffer, sizeof(char), -tamLinha, arquivoEntrada);
         // TODO: formatar dados para serem salvos em binário
+        fwrite(buffer, sizeof(char), tamLinha, stdout);
         // Adicionar função preencher registro passando buffer
         // TODO: escrever no arquivo de saida
         // Adicionar função inserir registro em arquivo binário        

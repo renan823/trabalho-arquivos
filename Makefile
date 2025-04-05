@@ -30,7 +30,7 @@ main.o:
 	$(CC) $(FLAGS) $(SOURCE)/main.c -c main.o
 
 run:
-	./$(APP)
+	./$(APP) < caso1.in
 
 clean:
 	rm *.o $(APP)
