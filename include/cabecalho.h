@@ -32,17 +32,17 @@
         long int proxByteOffset;
         int nroRegArq;
         int nroRegRem;
-        char descreveIdentificador[23];
-        char descreveYear[27];
-        char descreveFinancialLoss[28];
+        char descreveIdentificador[24];
+        char descreveYear[28];
+        char descreveFinancialLoss[29];
         char codDescreveCountry;
-        char descreveCountry[26];
+        char descreveCountry[27];
         char codDescreveType;
-        char descreveType[38];
+        char descreveType[39];
         char codDescreveTargetIndustry;
-        char descreveTargetIndustry[38];
+        char descreveTargetIndustry[39];
         char codDescreveDefense;
-        char descreveDefense[67];
+        char descreveDefense[68];
     };
 
     CABECALHO *CriarCabecalhoPadrao(void);

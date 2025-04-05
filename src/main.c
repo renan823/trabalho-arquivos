@@ -72,7 +72,6 @@ void PreencherRegistro(REGISTRO **reg,char *buffer){
     strtok(buffer, ",");
     while(strtok(NULL, ","));
 
-
     // Var. aux que ajuda a verificar campo vazio no buffer
     char *linha = buffer;
     
@@ -176,6 +175,9 @@ void PreencherRegistro(REGISTRO **reg,char *buffer){
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
+
+    ExibirRegistro(*reg);
+
     return;
 }
 

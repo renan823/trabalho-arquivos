@@ -18,17 +18,17 @@ CABECALHO *CriarCabecalhoPadrao(void) {
         c->proxByteOffset = 0;
         c->nroRegArq = 0;
         c->nroRegRem = 0;
-        memcpy(c->descreveIdentificador, "IDENTIFICADOR DO ATAQUE", 23);
-        memcpy(c->descreveYear, "ANO EM QUE O ATAQUE OCORREU", 27);
-        memcpy(c->descreveFinancialLoss, "PREJUIZO CAUSADO PELO ATAQUE", 28);
+        memcpy(c->descreveIdentificador, "IDENTIFICADOR DO ATAQUE\0", 24);
+        memcpy(c->descreveYear, "ANO EM QUE O ATAQUE OCORREU\0", 28);
+        memcpy(c->descreveFinancialLoss, "PREJUIZO CAUSADO PELO ATAQUE\0", 29);
         c->codDescreveCountry = '1';
-        memcpy(c->descreveCountry, "PAIS ONDE OCORREU O ATAQUE", 26);
+        memcpy(c->descreveCountry, "PAIS ONDE OCORREU O ATAQUE\0", 27);
         c->codDescreveType = '2';
-        memcpy(c->descreveType, "TIPO DE AMEACA A SEGURANCA CIBERNETICA", 38);
+        memcpy(c->descreveType, "TIPO DE AMEACA A SEGURANCA CIBERNETICA\0", 39);
         c->codDescreveTargetIndustry = '3';
-        memcpy(c->descreveTargetIndustry, "SETOR DA INDUSTRIA QUE SOFREU O ATAQUE", 38);
+        memcpy(c->descreveTargetIndustry, "SETOR DA INDUSTRIA QUE SOFREU O ATAQUE\0", 39);
         c->codDescreveDefense = '4';
-        memcpy(c->descreveDefense, "ESTRATEGIA DE DEFESA CIBERNETICA EMPREGADA PARA RESOLVER O PROBLEMA", 67);
+        memcpy(c->descreveDefense, "ESTRATEGIA DE DEFESA CIBERNETICA EMPREGADA PARA RESOLVER O PROBLEMA\0", 68);
     }
 
     return c;
