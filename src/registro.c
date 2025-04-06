@@ -165,6 +165,8 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
+    // Somar o tamanho dos campos das variáveis
+    (*reg)->tamanhoRegistro += tamCamposVariaveis;
 
     return;
 }

@@ -33,7 +33,7 @@ utils.o:
 	$(CC) $(FLAGS) -c $(SOURCE)/utils.c -o utils.o
 
 run:
-	./$(APP) < caso1.in
+	./$(APP)
 
 clean:
 	rm *.o $(APP)

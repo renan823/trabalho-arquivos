@@ -17,7 +17,7 @@ CABECALHO *CriarCabecalhoPadrao(void) {
         // Inicializar campos do cabecalho
         c->status = CONSISTENTE;
         c->topo = -1;
-        c->proxByteOffset = 0;
+        c->proxByteOffset = 275;
         c->nroRegArq = 0;
         c->nroRegRem = 0;
         memcpy(c->descreveIdentificador, "IDENTIFICADOR DO ATAQUE\0", 24);
@@ -34,6 +34,39 @@ CABECALHO *CriarCabecalhoPadrao(void) {
     }
 
     return c;
+}
+
+/*
+Função que atualiza o cabeçalho de um arquivo binário
+OBS: campos com -1 não são alterados
+*/
+void AtualizarCabecalho(
+    FILE **arquivo,
+    char status,
+    long int topo,
+    long int proxByteOffset,
+    int nroRegArq,
+    int nroRegRem
+){
+    fseek(*arquivo, 0, SEEK_SET);
+
+    // Sempre é necessário enviar o valor do status
+    fwrite(&(status), sizeof(char), 1, *arquivo);
+
+    // Altera os campos se forem != -1
+    if(topo != -1) fwrite(&(topo), sizeof(long int), 1, *arquivo);
+    else fseek(*arquivo, sizeof(long int),SEEK_CUR);
+
+    if(proxByteOffset != -1) fwrite(&(proxByteOffset), sizeof(long int), 1, *arquivo);
+    else fseek(*arquivo, sizeof(long int),SEEK_CUR);
+
+    if(nroRegArq != -1) fwrite(&(nroRegArq), sizeof(int), 1, *arquivo);
+    else fseek(*arquivo, sizeof(int),SEEK_CUR);
+
+    if(nroRegRem != -1) fwrite(&(nroRegRem), sizeof(int), 1, *arquivo);
+    else fseek(*arquivo, sizeof(int),SEEK_CUR);
+
+    return;
 }
 
 /*
