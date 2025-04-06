@@ -1,3 +1,4 @@
+#include "erros.h"
 #include "cabecalho.h"
 #include "registro.h"
 #include "utils.h"
@@ -9,7 +10,7 @@
 /* 
 Função que le registros em um CSV e armazena em um arquivo binário
 */
-void FUNCIONALIDADE1(){
+void FUNCIONALIDADE1(void){
     // Ler nome dos arquivos de entrada e saída.
     char *nomeArquivoEntrada = LerString();
     char *nomeArquivoSaida = LerString();
@@ -63,6 +64,60 @@ void FUNCIONALIDADE1(){
     return;
 }
 
+/*
+Exibe os registros no arquivo de dados informado
+*/
+void FUNCIONALIDADE2(void) {
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivo para leitura
+    FILE *arquivo = fopen(nomeArquivoEntrada, "rb");
+    if (arquivo == NULL) {
+        DispararErro(ErroProcessamentoArquivo());
+        return;
+    }
+
+    // Executar leitura
+    CABECALHO *c = LerCabecalho(&arquivo);
+
+    if (c == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Cabeçalho inconsistente não será lido
+    if (c->status == INCONSISTENTE) {
+        DispararErro(ErroProcessamentoArquivo());
+        return;
+    }
+
+    if (c->nroRegArq == 0) {
+        DispararErro(ErroRegistroInexistente());
+        return;
+    }
+
+    printf("%d\n", c->nroRegArq);
+
+    // Ler dados 
+    int total = 0;
+
+    while (total < c->nroRegArq) {
+        REGISTRO *reg = LerRegistro(arquivo);
+
+        if (!reg->removido) {
+            ExibirRegistro(reg);
+        }
+
+        ApagarRegistro(&reg); 
+
+        total++;
+    }
+
+    ApagarCabecalho(&c);
+
+    fclose(arquivo);
+    free(nomeArquivoEntrada);
+}
+
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
     int funcionalidade;
@@ -73,7 +128,7 @@ int main(void) {
             FUNCIONALIDADE1();
             break;
         case 2:
-            // TODO: SELECT 
+            FUNCIONALIDADE2();
             break;
         case 3:
             // TODO: WHERE

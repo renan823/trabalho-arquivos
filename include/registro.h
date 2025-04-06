@@ -51,5 +51,6 @@
     void ApagarRegistro(REGISTRO **reg);
     void PreencherRegistro(REGISTRO **reg,char *buffer);
     void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg);
+    REGISTRO *LerRegistro(FILE *arquivo);
 
 #endif

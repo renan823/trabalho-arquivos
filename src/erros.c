@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 struct erro {
     char *mensagem;
@@ -40,6 +41,10 @@ ERRO *ErroProcessamentoArquivo(void) {
     return ErroBase("Falha no processamento do arquivo.", false);
 }
 
+ERRO *ErroRegistroInexistente(void) {
+    return ErroBase("Registro Inexistente.", false);
+}
+
 void DispararErro(ERRO *erro) {
     if (erro == NULL) {
         fprintf(stderr, "Algo deu errado!\n");
@@ -49,8 +54,8 @@ void DispararErro(ERRO *erro) {
     bool fatal = erro->fatal;
 
     if (erro->mensagem != NULL) {
-        fprintf(stderr, "%s\n",  error->mensagem);
-        free(error->mensagem);
+        fprintf(stderr, "%s\n",  erro->mensagem);
+        free(erro->mensagem);
     }
 
     free(erro);

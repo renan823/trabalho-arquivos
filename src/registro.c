@@ -169,6 +169,49 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
     return;
 }
 
+char *LerCampoVariavel(FILE *arquivo) {
+    int tam = 0;
+    int max = 50;
+    char c;
+
+    // Buffer para ler os dados
+    char *buffer = (char*) malloc(sizeof(char) * max);
+    if (buffer == NULL) {
+        return NULL;
+    }
+
+    while (fread(&c, sizeof(char), 1, arquivo) == 1 && c != '|') {
+        buffer[tam] = c;
+        tam++;
+       
+        // Aumenta o buffer se precisar
+        if (tam >= max) {
+            max *= 2;
+
+            char *bufferMaior = (char*) malloc(sizeof(char) * max);
+            if (bufferMaior == NULL) {
+                free(buffer);
+                return NULL;
+            }
+
+            buffer = bufferMaior;
+        }
+    }
+
+    // Alocar uma string
+    char *str = (char*) malloc(sizeof(char) * tam);
+    if (str == NULL) {
+        free(buffer);
+        return NULL;
+    }
+
+    strncpy(str, buffer, tam);
+
+    free(buffer);
+
+    return str;
+}
+
 /**/
 REGISTRO *LerRegistro(FILE *arquivo) {
     REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
@@ -185,16 +228,17 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     fread(&(reg->year), sizeof(int), 1, arquivo);
     fread(&(reg->financialLoss), sizeof(float), 1, arquivo);
 
-    // Ler campos variaveis
-    char buffer[256];
-
     // Ler country
+    reg->country = LerCampoVariavel(arquivo);
 
     // Ler attackType
+    reg->attackType = LerCampoVariavel(arquivo);
 
     // Ler targetIndsutry
+    reg->targetIndustry = LerCampoVariavel(arquivo);
 
     // Ler defenseMechanism
+    reg->defenseMechanism = LerCampoVariavel(arquivo);
 
     return reg;
 }
