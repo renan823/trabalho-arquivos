@@ -151,7 +151,7 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
     linha += 1;
 
     // Campo 7: defenseMechanism(strlen(defenseMechanism))
-    if(*linha != ','){
+    if(*linha != '\0'){
         // Guarda conteúdo registro 
         int tamString = strlen(linha);
         // Aloca espaço string + '\0'
