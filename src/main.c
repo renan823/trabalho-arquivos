@@ -16,8 +16,15 @@ void FUNCIONALIDADE1(void){
     char *nomeArquivoSaida = LerString();
     // Abrir arquivos de entrada e saída
     FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "r");
-    FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb");
-    
+
+    // Verificar se o arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb"); 
+
     // Escreve cabecalho em binario no arquivo de saida
     CABECALHO *cabecalho =  CriarCabecalhoPadrao();
     EscreverCabecalho(&arquivoSaida, cabecalho);
