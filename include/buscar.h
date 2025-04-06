@@ -3,7 +3,7 @@
 
     #include <stdio.h>
 
-    void BuscarRegistros(FILE *file);
-    void BuscarRegistrosCondicional(FILE *file);
+    void BuscarRegistros(FILE *arquivo);
+    void BuscarRegistrosCondicional(FILE *arquivo);
 
 #endif

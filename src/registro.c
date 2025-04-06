@@ -1,5 +1,6 @@
 #include "registro.h"
 
+#include "erros.h"
 #include "cabecalho.h"
 
 #include <stdlib.h>
@@ -16,8 +17,9 @@ REGISTRO *CriarRegistroVazio(void) {
     REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
 
     if (reg == NULL) {
-        //erro!
+        DispararErro(ErroPonteiroInvalido());
     } 
+
     reg->removido = '0';
     // Tamanho fixo do registro
     reg->tamanhoRegistro = 20;
@@ -38,7 +40,11 @@ REGISTRO *CriarRegistroVazio(void) {
 /*
 Função que dado uma linha csv, preenche registro
 */
-void PreencherRegistro(REGISTRO **reg,char *buffer){
+void PreencherRegistro(REGISTRO **reg, char *buffer){
+    if (*reg == NULL || buffer == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+
     /*
     Manejo strok() - tirado site da IBM
     conteudo = strtok(linha do csv, delimitador).
@@ -163,41 +169,56 @@ void PreencherRegistro(REGISTRO **reg,char *buffer){
     return;
 }
 
+/**/
+REGISTRO *LerRegistro(FILE *arquivo) {
+    if (arquivo == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+}
+
 /* 
 Função que escreve um registro em um arquivo binário
 */
-void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg){
+void EscreverRegistro(FILE **arquivo, REGISTRO *reg){
+    if (*arquivo == NULL || reg == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+
     // Escrever campos fixos
-    fwrite(&(reg->removido), sizeof(char), 1, *arquivoSaida);
-    fwrite(&(reg->tamanhoRegistro), sizeof(int), 1, *arquivoSaida);
-    fwrite(&(reg->prox), sizeof(long int), 1, *arquivoSaida);
-    fwrite(&(reg->idAttack), sizeof(int), 1, *arquivoSaida);
-    fwrite(&(reg->year), sizeof(int), 1, *arquivoSaida);
-    fwrite(&(reg->financialLoss), sizeof(float), 1, *arquivoSaida);
+    fwrite(&(reg->removido), sizeof(char), 1, *arquivo);
+    fwrite(&(reg->tamanhoRegistro), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->prox), sizeof(long int), 1, *arquivo);
+    fwrite(&(reg->idAttack), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->year), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->financialLoss), sizeof(float), 1, *arquivo);
+
     // Escrever campos variáveis se existirem
     if(reg->country){
         // Campo: codDescreveCountry + country + "|"  
-        fwrite("1", sizeof(char), 1, *arquivoSaida);
-        fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivoSaida);
-        fwrite("|", sizeof(char), 1, *arquivoSaida);
+        fwrite("1", sizeof(char), 1, *arquivo);
+        fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
+        fwrite("|", sizeof(char), 1, *arquivo);
     }
+
     if(reg->attackType){
         // Campo: codDescreveAttackType + attackType + "|"  
-        fwrite("2", sizeof(char), 1, *arquivoSaida);
-        fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivoSaida);
-        fwrite("|", sizeof(char), 1, *arquivoSaida);
+        fwrite("2", sizeof(char), 1, *arquivo);
+        fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
+        fwrite("|", sizeof(char), 1, *arquivo);
     }
+
     if(reg->targetIndustry){
         // Campo: codDescreveTargetIndustry + targetIndustry + "|"  
-        fwrite("3", sizeof(char), 1, *arquivoSaida);
-        fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivoSaida);
-        fwrite("|", sizeof(char), 1, *arquivoSaida);
+        fwrite("3", sizeof(char), 1, *arquivo);
+        fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
+        fwrite("|", sizeof(char), 1, *arquivo);
     }
+
     if(reg->defenseMechanism){
         // Campo: codDescreveDefenseMechanism + defenseMechanism + "|"  
-        fwrite("4", sizeof(char), 1, *arquivoSaida);
-        fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivoSaida);
-        fwrite("|", sizeof(char), 1, *arquivoSaida);
+        fwrite("4", sizeof(char), 1, *arquivo);
+        fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
+        fwrite("|", sizeof(char), 1, *arquivo);
     }
 
     return;
@@ -208,29 +229,44 @@ Exibe os campos do regsitro, cuidando de valores nulos/vazios.
 */
 void ExibirRegistro(REGISTRO *reg) {
     CABECALHO *c = CriarCabecalhoPadrao();
+
     if (reg == NULL || c == NULL) {
-        // erro!
-        return;
+        DispararErro(ErroPonteiroInvalido());
     }
 
     // Campo idAttack
-    if (reg->idAttack == -1) printf("%s: %s\n", c->descreveIdentificador, MSG_VAZIO);
-    else printf("%s: %d\n", c->descreveIdentificador, reg->idAttack);
+    if (reg->idAttack == -1) {
+        printf("%s: %s\n", c->descreveIdentificador, MSG_VAZIO);
+    } else {
+        printf("%s: %d\n", c->descreveIdentificador, reg->idAttack);
+    }
+
     // Campo year
-    if (reg->year == -1) printf("%s: %s\n", c->descreveYear, MSG_VAZIO);
-    else printf("%s: %d\n", c->descreveYear, reg->year);
+    if (reg->year == -1) {
+        printf("%s: %s\n", c->descreveYear, MSG_VAZIO);
+    } else { 
+        printf("%s: %d\n", c->descreveYear, reg->year);
+    }
+
     // Campo country
     printf("%s: %s\n", c->descreveCountry, 
         reg->country == NULL ? MSG_VAZIO : reg->country);
+
     // Campo targetIndustry
     printf("%s: %s\n", c->descreveTargetIndustry, 
                         reg->targetIndustry == NULL ? MSG_VAZIO:reg->targetIndustry);
+
     // Campo attackType
     printf("%s: %s\n", c->descreveType,
                         reg->attackType == NULL ? MSG_VAZIO : reg->attackType);
+                        
     // Campo financialLoss
-    if (reg->financialLoss == -1) printf("%s: %s\n", c->descreveFinancialLoss, MSG_VAZIO);
-    else printf("%s: %.2f\n", c->descreveFinancialLoss, reg->financialLoss);
+    if (reg->financialLoss == -1) {
+        printf("%s: %s\n", c->descreveFinancialLoss, MSG_VAZIO);
+    } else {
+        printf("%s: %.2f\n", c->descreveFinancialLoss, reg->financialLoss);
+    }
+
     // Campo defenseMechanism
     printf("%s: %s\n", c->descreveDefense,
                         reg->defenseMechanism == NULL ? MSG_VAZIO : reg->defenseMechanism);
@@ -243,7 +279,7 @@ void ExibirRegistro(REGISTRO *reg) {
 
 void ApagarRegistro(REGISTRO **reg) {
     if (*reg == NULL) {
-        //erro!
+       DispararErro(ErroPonteiroInvalido());
     } 
 
     // Desalocar campos variáveis
@@ -251,18 +287,23 @@ void ApagarRegistro(REGISTRO **reg) {
         free((*reg)->country);
         (*reg)->country = NULL;
     }; 
+
     if ((*reg)->attackType != NULL) {
         free((*reg)->attackType);
         (*reg)->attackType = NULL;
     }; 
+
     if ((*reg)->targetIndustry != NULL) {
         free((*reg)->targetIndustry);
         (*reg)->targetIndustry = NULL;
     }; 
+
     if ((*reg)->defenseMechanism != NULL) {
         free((*reg)->defenseMechanism);
         (*reg)->defenseMechanism = NULL;
     }; 
 
-    return;
+    // Desalocar registro todo
+    free(*reg);
+    *reg = NULL;
 }

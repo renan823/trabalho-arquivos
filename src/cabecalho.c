@@ -13,7 +13,7 @@ CABECALHO *CriarCabecalhoPadrao(void) {
     // Se houver espaço na memória heap
     if (c != NULL) {
         // Inicializar campos do cabecalho
-        c->status = '1';
+        c->status = CONSISTENTE;
         c->topo = -1;
         c->proxByteOffset = 0;
         c->nroRegArq = 0;
@@ -57,7 +57,7 @@ Função que escreve o cabeçalho de dados no arquivo informado
 */
 void EscreverCabecalho(FILE **arquivo, CABECALHO *c) {
     if (*arquivo == NULL || c == NULL) {
-        return;
+        DispararErro(ErroPonteiroInvalido());
     }
 
     // Escrever dados
