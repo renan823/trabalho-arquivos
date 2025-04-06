@@ -171,9 +171,32 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
 
 /**/
 REGISTRO *LerRegistro(FILE *arquivo) {
-    if (arquivo == NULL) {
+    REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
+
+    if (arquivo == NULL || reg == NULL) {
         DispararErro(ErroPonteiroInvalido());
     }
+
+    // Ler campos fixos
+    fread(&(reg->removido), sizeof(char), 1, arquivo);
+    fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo);
+    fread(&(reg->prox), sizeof(long int), 1, arquivo);
+    fread(&(reg->idAttack), sizeof(int), 1, arquivo);
+    fread(&(reg->year), sizeof(int), 1, arquivo);
+    fread(&(reg->financialLoss), sizeof(float), 1, arquivo);
+
+    // Ler campos variaveis
+    char buffer[256];
+
+    // Ler country
+
+    // Ler attackType
+
+    // Ler targetIndsutry
+
+    // Ler defenseMechanism
+
+    return reg;
 }
 
 /* 

@@ -1,6 +1,8 @@
 #ifndef REGISTRO_H_
     #define REGISTRO_H_
 
+    #define SEPARARDO '|'
+
     #include "cabecalho.h"
 
     /*

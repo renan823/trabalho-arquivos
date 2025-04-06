@@ -1,5 +1,6 @@
 #include "buscar.h"
 
+#include "erros.h"
 #include "cabecalho.h"
 #include "registro.h"
 
