@@ -346,6 +346,35 @@ void ExibirRegistro(REGISTRO *reg) {
     printf("\n");
 }
 
+/*
+Função para imprimir registros filtrados pelos parametros
+*/
+bool BuscaRegistroPorParametro(FILE *arquivoEntrada,int quantParametros,char **parametros){
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoEntrada, 0, SEEK_SET);
+    
+    char byteAtual;
+    // Se o arquivo for não consistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivoEntrada);
+    if(byteAtual == '0') return false;
+
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoEntrada, 276, SEEK_SET);
+    
+    // Percorrer arquivo
+    while(fread(&byteAtual, sizeof(char), 1, arquivoEntrada)){
+        if(byteAtual == '1'){
+            // Se arquivo removido, pular para o próximo registro
+            int tamRegistro;
+            fread(&tamRegistro, sizeof(int), 4, arquivoEntrada);
+            fseek(arquivoEntrada, tamRegistro, SEEK_CUR);
+        } else {
+            // TODO: Lógica para pegar registros
+        }
+    }
+
+}
+
 void ApagarRegistro(REGISTRO **reg) {
     if (*reg == NULL) {
        DispararErro(ErroPonteiroInvalido());

@@ -137,6 +137,54 @@ void FUNCIONALIDADE2(void) {
     free(nomeArquivoEntrada);
 }
 
+/*
+Busca registros de acordo com um filtro
+*/
+void FUNCIONALIDADE3(void){
+    // Ler nome dos arquivos de entrada e saída.
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivos de entrada
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb");
+
+    // Quantidades de buscas a serem realizadas
+    int quantBuscas;
+    scanf("%d", &quantBuscas);
+
+    while(quantBuscas--){
+        // Quantidade de parametros em cada busca(filtros).
+        int quantParametros;
+        scanf("%d", &quantParametros);
+
+        // Vetor para armazenar os parametros
+        char **parametros = (char**) malloc(quantParametros*sizeof(char));
+
+        // Ler parametros inseridos pelo usuário
+        for(int i = 0; i < quantParametros; i++){
+            parametros[i] = LerString();
+        }
+
+        // PENSAR: retornar regs ou imprimir na função?
+        BuscaRegistroPorParametro(arquivoEntrada, quantParametros, parametros);
+
+        // Apagar espaço alocado para os parâmetros 
+        for(int i = 0; i < quantParametros; i++){
+            free(parametros[i]);
+            parametros[i] = NULL;
+        }
+
+        // Liberar memória
+        free(parametros);
+        parametros = NULL;
+
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+    }
+
+
+}
+
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
     int funcionalidade;
@@ -150,7 +198,7 @@ int main(void) {
             FUNCIONALIDADE2();
             break;
         case 3:
-            // TODO: WHERE
+            FUNCIONALIDADE3();
             break;
 
         default:
