@@ -15,10 +15,13 @@ ERRO *ErroBase(char *mensagem, bool fatal) {
 
     if (erro != NULL) {
         erro->fatal = fatal;
-
-        erro->mensagem = (char*) malloc(strlen(mensagem));
+        // Alocar espaço para a string e o \0
+        int tamString = strlen(mensagem);
+        erro->mensagem = (char*) malloc(sizeof(char)*(tamString + 1));
         if (erro->mensagem != NULL) {
             strcpy(erro->mensagem, mensagem);
+            // Garantir \0 para evitar erros
+            (erro->mensagem)[tamString] = '\0';
         }
     }  
 
@@ -47,7 +50,7 @@ ERRO *ErroRegistroInexistente(void) {
 
 void DispararErro(ERRO *erro) {
     if (erro == NULL) {
-        fprintf(stderr, "Algo deu errado!\n");
+        fprintf(stderr, "Falha ao emitir erro!\n");
         exit(1);
     }
 
@@ -56,9 +59,11 @@ void DispararErro(ERRO *erro) {
     if (erro->mensagem != NULL) {
         fprintf(stderr, "%s\n",  erro->mensagem);
         free(erro->mensagem);
+        erro->mensagem = NULL;
     }
 
     free(erro);
+    erro = NULL;
 
     if (fatal) {
         exit(1);
