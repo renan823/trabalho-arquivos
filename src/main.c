@@ -152,41 +152,42 @@ void FUNCIONALIDADE3(void){
     // Abrir arquivos de entrada
     FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb");
 
+    // Quantidades de buscas a serem realizadas
+    int quantBuscas;
+    scanf("%d", &quantBuscas);
+
     // Verificar se arquivo de entrada existe
     if(arquivoEntrada == NULL){
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
-        // Quantidades de buscas a serem realizadas
-        int quantBuscas;
-        scanf("%d", &quantBuscas);
-
         while(quantBuscas--){
-            // Quantidade de parametros em cada busca(filtros).
-            int quantParametros;
-            scanf("%d", &quantParametros);
+            // Quantidade de campos em cada busca(filtros).
+            int quantCampos;
+            scanf("%d", &quantCampos);
 
-            // Vetor para armazenar os parametros
-            char **parametros = (char**) malloc(quantParametros*sizeof(char));
+            // Vetor para armazenar os campos
+            char **campos = (char**) malloc(quantCampos*sizeof(char));
+            // Vetor para armazenar os valores
+             
 
-            // Ler parametros inseridos pelo usuário
-            for(int i = 0; i < quantParametros; i++){
-                parametros[i] = LerString();
+            // Ler campos inseridos pelo usuário
+            for(int i = 0; i < quantCampos; i++){
+                campos[i] = LerString();
             }
 
-            // TODO
             // PENSAR: retornar regs ou imprimir na função?
-            BuscaRegistroPorParametro(arquivoEntrada, quantParametros, parametros);
+            BuscaRegistroPorCampo(arquivoEntrada, quantCampos, campos);
 
-            // Apagar espaço alocado para os parâmetros 
-            for(int i = 0; i < quantParametros; i++){
-                free(parametros[i]);
-                parametros[i] = NULL;
+            // Apagar espaço alocado para os campos 
+            for(int i = 0; i < quantCampos; i++){
+                free(campos[i]);
+                campos[i] = NULL;
             }
 
             // Liberar memória
-            free(parametros);
-            parametros = NULL;
+            free(campos);
+            campos = NULL;
         }
 
         // Fechar arquivo
