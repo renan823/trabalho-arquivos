@@ -54,6 +54,11 @@
     void PreencherRegistro(REGISTRO **reg,char *buffer);
     void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
-    bool BuscaRegistroPorParametro(FILE *arquivoEntrada,int quantParametros,char **parametros);
+    bool BuscaRegistroPorParametro(
+        FILE *arquivo,
+        int quantCampos,
+        char **campos,
+        char **valores
+    );
 
 #endif

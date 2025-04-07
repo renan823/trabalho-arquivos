@@ -166,28 +166,39 @@ void FUNCIONALIDADE3(void){
             int quantCampos;
             scanf("%d", &quantCampos);
 
-            // Vetor para armazenar os campos
-            char **campos = (char**) malloc(quantCampos*sizeof(char));
-            // Vetor para armazenar os valores
-             
+            // Registro a ser usado como filtro
+            REGISTRO *reg = CriarRegistroVazio();
 
             // Ler campos inseridos pelo usuário
             for(int i = 0; i < quantCampos; i++){
-                campos[i] = LerString();
+                char *campo = LerString();
+                // Switch case do campo
+                if(!strcmp(campo, "idAttack")){
+                    scanf("%d", &(reg->idAttack));
+                } else if(!strcmp(campo, "year")) {
+                    scanf("%d", &(reg->year));
+                } else if(!strcmp(campo, "financialLoss")) {
+                    scanf("%f", &(reg->financialLoss));
+                } else if(!strcmp(campo, "country")) {
+                    reg->country = LerString();
+                } else if(!strcmp(campo, "attackType")) {
+                    reg->attackType = LerString();
+                } else if(!strcmp(campo, "targetIndustry")) {
+                    reg->targetIndustry = LerString();
+                } else if(!strcmp(campo, "defenseMechanism")) {
+                    reg->defenseMechanism = LerString();
+                } else {
+                    // TODO: erro select invalido
+                }
+
+                free(campo);
+                campo = NULL;
             }
 
-            // PENSAR: retornar regs ou imprimir na função?
-            BuscaRegistroPorCampo(arquivoEntrada, quantCampos, campos);
+            BuscaRegistroPorCampo(arquivoEntrada, reg);
 
-            // Apagar espaço alocado para os campos 
-            for(int i = 0; i < quantCampos; i++){
-                free(campos[i]);
-                campos[i] = NULL;
-            }
-
-            // Liberar memória
-            free(campos);
-            campos = NULL;
+            // Apagar registro filtro
+            ApagarRegistro(&reg);
         }
 
         // Fechar arquivo

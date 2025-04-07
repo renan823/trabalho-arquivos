@@ -213,7 +213,7 @@ char *LerCampoVariavel(FILE *arquivo) {
     return str;
 }
 
-/**/
+/*Ler registro exceto campo removido*/
 REGISTRO *LerRegistro(FILE *arquivo) {
     REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
 
@@ -221,8 +221,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
         DispararErro(ErroPonteiroInvalido());
     }
 
-    // Ler campos fixos
-    fread(&(reg->removido), sizeof(char), 1, arquivo);
+    // Ler campos fixos(exceto byte removido)
     fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo);
     fread(&(reg->prox), sizeof(long int), 1, arquivo);
     fread(&(reg->idAttack), sizeof(int), 1, arquivo);
@@ -348,7 +347,7 @@ void ExibirRegistro(REGISTRO *reg) {
 /*
 Função para imprimir registros filtrados pelos parametros
 */
-bool BuscaRegistroPorParametro(FILE *arquivo,int quantParametros,char **parametros){
+bool BuscaRegistroPorParametro(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
@@ -374,7 +373,26 @@ bool BuscaRegistroPorParametro(FILE *arquivo,int quantParametros,char **parametr
             fread(&tamRegistro, sizeof(int), 4, arquivo);
             fseek(arquivo, tamRegistro, SEEK_CUR);
         } else {
-            // TODO: Lógica para pegar registros
+            REGISTRO *regAtual = LerRegistro(arquivo);
+            bool ehRegistroValido = true;
+            // TODO: verificações registros
+            /*
+            Ideia: se existe em reg, deve ser verificado
+            Se valor for diferente, não deve ser impresso
+            */
+            for(int i = 0; i < 1; i++){
+                if(reg->idAttack != -1){
+                    if(reg->idAttack != regAtual->idAttack){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                }
+            }
+
+            if(ehRegistroValido){
+                ExibirRegistro(regAtual);
+                printf("\n**********\n");
+            }
         }
     }
 
