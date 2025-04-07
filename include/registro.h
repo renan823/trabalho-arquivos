@@ -5,6 +5,8 @@
 
     #include "cabecalho.h"
 
+    #include<stdbool.h>
+
     /*
     Registro do arquivo de dados.
 
@@ -52,5 +54,6 @@
     void PreencherRegistro(REGISTRO **reg,char *buffer);
     void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
+    bool BuscaRegistroPorParametro(FILE *arquivoEntrada,int quantParametros,char **parametros);
 
 #endif

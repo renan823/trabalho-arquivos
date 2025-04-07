@@ -86,9 +86,8 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
 
     // Campo 3: financialLoss(float)
     if(*linha != ','){
-        (*reg)->financialLoss = atof(linha);
-        // Andar tamanho do conteúdo como string
-        linha += strlen(linha);
+        // Converte string para float e atualiza linha(linha += strlen(linha))
+        (*reg)->financialLoss = strtof(linha, &linha);
     }
     // Pula '\0' ou ','
     linha += 1;
@@ -373,6 +372,7 @@ bool BuscaRegistroPorParametro(FILE *arquivoEntrada,int quantParametros,char **p
         }
     }
 
+    return true;
 }
 
 void ApagarRegistro(REGISTRO **reg) {
