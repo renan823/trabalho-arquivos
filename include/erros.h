@@ -8,6 +8,7 @@
     ERRO *ErroArquivoVazio(void);
     ERRO *ErroProcessamentoArquivo(void);
     ERRO *ErroRegistroInexistente(void);
+    ERRO *ErroCriarArquivo(void);
 
     void DispararErro(ERRO *erro);
 #endif

@@ -48,6 +48,11 @@ void AtualizarCabecalho(
     int nroRegArq,
     int nroRegRem
 ){
+    if (*arquivo == NULL) {
+        // Dispara erro fatal
+        DispararErro(ErroPonteiroInvalido());
+    }
+
     fseek(*arquivo, 0, SEEK_SET);
 
     // Sempre é necessário enviar o valor do status

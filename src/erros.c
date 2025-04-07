@@ -48,6 +48,10 @@ ERRO *ErroRegistroInexistente(void) {
     return ErroBase("Registro Inexistente.", false);
 }
 
+ERRO *ErroCriarArquivo(void){
+    return ErroBase("Falha ao criar arquivo.", true);
+}
+
 void DispararErro(ERRO *erro) {
     if (erro == NULL) {
         fprintf(stderr, "Falha ao emitir erro!\n");
@@ -57,7 +61,7 @@ void DispararErro(ERRO *erro) {
     bool fatal = erro->fatal;
 
     if (erro->mensagem != NULL) {
-        fprintf(stderr, "%s\n",  erro->mensagem);
+        printf("%s\n",  erro->mensagem);
         free(erro->mensagem);
         erro->mensagem = NULL;
     }

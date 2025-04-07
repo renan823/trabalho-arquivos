@@ -348,25 +348,31 @@ void ExibirRegistro(REGISTRO *reg) {
 /*
 Função para imprimir registros filtrados pelos parametros
 */
-bool BuscaRegistroPorParametro(FILE *arquivoEntrada,int quantParametros,char **parametros){
+bool BuscaRegistroPorParametro(FILE *arquivo,int quantParametros,char **parametros){
+    // Se o arquivo de entrada não existir
+    if(arquivo == NULL){
+        // Dispara erro fatal.
+        DispararErro(ErroPonteiroInvalido());
+    }
+
     // Atualizar ponteiro do arquivo para o início
-    fseek(arquivoEntrada, 0, SEEK_SET);
+    fseek(arquivo, 0, SEEK_SET);
     
     char byteAtual;
     // Se o arquivo for não consistente, Falha no processamento do arquivo. 
-    fread(&byteAtual, sizeof(char), 1, arquivoEntrada);
+    fread(&byteAtual, sizeof(char), 1, arquivo);
     if(byteAtual == '0') return false;
 
     // Atualizar ponteiro do arquivo para o início
-    fseek(arquivoEntrada, 276, SEEK_SET);
+    fseek(arquivo, 276, SEEK_SET);
     
     // Percorrer arquivo
-    while(fread(&byteAtual, sizeof(char), 1, arquivoEntrada)){
+    while(fread(&byteAtual, sizeof(char), 1, arquivo)){
         if(byteAtual == '1'){
             // Se arquivo removido, pular para o próximo registro
             int tamRegistro;
-            fread(&tamRegistro, sizeof(int), 4, arquivoEntrada);
-            fseek(arquivoEntrada, tamRegistro, SEEK_CUR);
+            fread(&tamRegistro, sizeof(int), 4, arquivo);
+            fseek(arquivo, tamRegistro, SEEK_CUR);
         } else {
             // TODO: Lógica para pegar registros
         }

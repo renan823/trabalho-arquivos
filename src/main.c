@@ -19,61 +19,66 @@ void FUNCIONALIDADE1(void){
 
     // Verificar se o arquivo de entrada existe
     if(arquivoEntrada == NULL){
-        printf("Falha no processamento do arquivo.\n");
-        return;
-    }
-
-    FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb"); 
-
-    // Escreve cabecalho em binario no arquivo de saida
-    CABECALHO *cabecalho =  CriarCabecalhoPadrao();
-    EscreverCabecalho(&arquivoSaida, cabecalho);
-    ApagarCabecalho(&cabecalho);
-
-    // Buffer para armazenar linha do CSV
-    int tamBuffer = 256;
-    char *buffer = (char*) malloc(sizeof(char)*tamBuffer);
-
-    // Eliminar introdução do arquivo CSV
-    PegarLinha(&buffer, tamBuffer, arquivoEntrada);
-
-    // número de registros não removidos presentes no arquivo
-    int nroRegArq = 0;
-
-    // Retorna tamanho da linha e não altera o ponteiro.
-    // Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
-    while(PegarLinha(&buffer, tamBuffer, arquivoEntrada)){
-        // Adicionar numero de registros não removidos no arquivo.
-        nroRegArq++;
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb");
         
-        // Preencher registro passando buffer
-        REGISTRO *reg = CriarRegistroVazio();
-        PreencherRegistro(&reg, buffer);
-        // Inserir registro em arquivo binário        
-        EscreverRegistro(&arquivoSaida, reg);
+        // Verifica se o arquivo foi criado
+        if(arquivoSaida == NULL){
+            // Dispara erro fatal
+            DispararErro(ErroCriarArquivo());
+        }
 
-        // Apagar registro
-        ApagarRegistro(&reg);
-    };
-    
-    // Guardar próximo byteOffSet disponível
-    long int proxByteOffset = ftell(arquivoSaida);
+        // Escreve cabecalho em binario no arquivo de saida
+        CABECALHO *cabecalho =  CriarCabecalhoPadrao();
+        EscreverCabecalho(&arquivoSaida, cabecalho);
+        ApagarCabecalho(&cabecalho);
 
-    // Atualizar cabeçalho arquivo(-1 para não alterar campos desnecessários)
-    AtualizarCabecalho(&arquivoSaida, '1', -1, proxByteOffset, nroRegArq, -1);
+        // Buffer para armazenar linha do CSV
+        int tamBuffer = 256;
+        char *buffer = (char*) malloc(sizeof(char)*tamBuffer);
 
-    // Liberar memória do buffer
-    free(buffer);
-    buffer = NULL;
+        // Eliminar introdução do arquivo CSV
+        PegarLinha(&buffer, tamBuffer, arquivoEntrada);
 
-    // Fechar arquivos de entrada e saída
-    fclose(arquivoEntrada);
-    fclose(arquivoSaida);
+        // número de registros não removidos presentes no arquivo
+        int nroRegArq = 0;
 
-    // Executar função fornecida para  
-    // mostrar a saída do arquivo ataques.bin
-    binarioNaTela(nomeArquivoSaida);
-    
+        // Retorna tamanho da linha e não altera o ponteiro.
+        // Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
+        while(PegarLinha(&buffer, tamBuffer, arquivoEntrada)){
+            // Adicionar numero de registros não removidos no arquivo.
+            nroRegArq++;
+            
+            // Preencher registro passando buffer
+            REGISTRO *reg = CriarRegistroVazio();
+            PreencherRegistro(&reg, buffer);
+            // Inserir registro em arquivo binário        
+            EscreverRegistro(&arquivoSaida, reg);
+
+            // Apagar registro
+            ApagarRegistro(&reg);
+        };
+        
+        // Guardar próximo byteOffSet disponível
+        long int proxByteOffset = ftell(arquivoSaida);
+
+        // Atualizar cabeçalho arquivo(-1 para não alterar campos desnecessários)
+        AtualizarCabecalho(&arquivoSaida, '1', -1, proxByteOffset, nroRegArq, -1);
+
+        // Liberar memória do buffer
+        free(buffer);
+        buffer = NULL;
+
+        // Fechar arquivos de entrada e saída
+        fclose(arquivoEntrada);
+        fclose(arquivoSaida);
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoSaida);
+    }
     // Liberar memória do nome dos arquivos
     free(nomeArquivoEntrada);
     nomeArquivoEntrada = NULL;
@@ -147,42 +152,53 @@ void FUNCIONALIDADE3(void){
     // Abrir arquivos de entrada
     FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb");
 
-    // Quantidades de buscas a serem realizadas
-    int quantBuscas;
-    scanf("%d", &quantBuscas);
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        // Quantidades de buscas a serem realizadas
+        int quantBuscas;
+        scanf("%d", &quantBuscas);
 
-    while(quantBuscas--){
-        // Quantidade de parametros em cada busca(filtros).
-        int quantParametros;
-        scanf("%d", &quantParametros);
+        while(quantBuscas--){
+            // Quantidade de parametros em cada busca(filtros).
+            int quantParametros;
+            scanf("%d", &quantParametros);
 
-        // Vetor para armazenar os parametros
-        char **parametros = (char**) malloc(quantParametros*sizeof(char));
+            // Vetor para armazenar os parametros
+            char **parametros = (char**) malloc(quantParametros*sizeof(char));
 
-        // Ler parametros inseridos pelo usuário
-        for(int i = 0; i < quantParametros; i++){
-            parametros[i] = LerString();
+            // Ler parametros inseridos pelo usuário
+            for(int i = 0; i < quantParametros; i++){
+                parametros[i] = LerString();
+            }
+
+            // TODO
+            // PENSAR: retornar regs ou imprimir na função?
+            BuscaRegistroPorParametro(arquivoEntrada, quantParametros, parametros);
+
+            // Apagar espaço alocado para os parâmetros 
+            for(int i = 0; i < quantParametros; i++){
+                free(parametros[i]);
+                parametros[i] = NULL;
+            }
+
+            // Liberar memória
+            free(parametros);
+            parametros = NULL;
         }
-
-        // PENSAR: retornar regs ou imprimir na função?
-        BuscaRegistroPorParametro(arquivoEntrada, quantParametros, parametros);
-
-        // Apagar espaço alocado para os parâmetros 
-        for(int i = 0; i < quantParametros; i++){
-            free(parametros[i]);
-            parametros[i] = NULL;
-        }
-
-        // Liberar memória
-        free(parametros);
-        parametros = NULL;
 
         // Fechar arquivo
         fclose(arquivoEntrada);
         arquivoEntrada = NULL;
     }
 
+    // Liberar memória 
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
 
+    return;
 }
 
 int main(void) {
