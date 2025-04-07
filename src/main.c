@@ -160,51 +160,52 @@ void FUNCIONALIDADE3(void){
     if(arquivoEntrada == NULL){
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
-    } else {
-        while(quantBuscas--){
-            // Quantidade de campos em cada busca(filtros).
-            int quantCampos;
-            scanf("%d", &quantCampos);
+    }
 
-            // Registro a ser usado como filtro
-            REGISTRO *reg = CriarRegistroVazio();
+    while(quantBuscas--){
+        // Quantidade de campos em cada busca(filtros).
+        int quantCampos;
+        scanf("%d", &quantCampos);
 
-            // Ler campos inseridos pelo usuário
-            for(int i = 0; i < quantCampos; i++){
-                char *campo = LerString();
-                // Switch case do campo
-                if(!strcmp(campo, "idAttack")){
-                    scanf("%d", &(reg->idAttack));
-                } else if(!strcmp(campo, "year")) {
-                    scanf("%d", &(reg->year));
-                } else if(!strcmp(campo, "financialLoss")) {
-                    scanf("%f", &(reg->financialLoss));
-                } else if(!strcmp(campo, "country")) {
-                    reg->country = LerString();
-                } else if(!strcmp(campo, "attackType")) {
-                    reg->attackType = LerString();
-                } else if(!strcmp(campo, "targetIndustry")) {
-                    reg->targetIndustry = LerString();
-                } else if(!strcmp(campo, "defenseMechanism")) {
-                    reg->defenseMechanism = LerString();
-                } else {
-                    // TODO: erro select invalido
-                }
+        // Registro a ser usado como filtro
+        REGISTRO *reg = CriarRegistroVazio();
 
-                free(campo);
-                campo = NULL;
+        // Ler campos inseridos pelo usuário
+        for(int i = 0; i < quantCampos; i++){
+            char *campo = LerString();
+            // Switch case do campo
+            if(!strcmp(campo, "idAttack")){
+                scanf("%d", &(reg->idAttack));
+            } else if(!strcmp(campo, "year")) {
+                scanf("%d", &(reg->year));
+            } else if(!strcmp(campo, "financialLoss")) {
+                scanf("%f", &(reg->financialLoss));
+            } else if(!strcmp(campo, "country")) {
+                reg->country = LerStringComAspas();
+            } else if(!strcmp(campo, "attackType")) {
+                reg->attackType = LerStringComAspas();
+            } else if(!strcmp(campo, "targetIndustry")) {
+                reg->targetIndustry = LerStringComAspas();
+            } else if(!strcmp(campo, "defenseMechanism")) {
+                reg->defenseMechanism = LerStringComAspas();
+            } else {
+                // TODO: erro select invalido
             }
 
-            BuscaRegistroPorCampo(arquivoEntrada, reg);
-
-            // Apagar registro filtro
-            ApagarRegistro(&reg);
+            free(campo);
+            campo = NULL;
         }
 
-        // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        BuscaRegistroPorCampo(arquivoEntrada, reg);
+
+        // Apagar registro filtro
+        ApagarRegistro(&reg);
     }
+
+    // Fechar arquivo
+    fclose(arquivoEntrada);
+    arquivoEntrada = NULL;
+    
 
     // Liberar memória 
     free(nomeArquivoEntrada);

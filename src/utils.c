@@ -1,4 +1,5 @@
-#include<stdio.h>
+#include "utils.h"
+
 #include<stdlib.h>
 #include<string.h>
 #include<ctype.h>
@@ -49,6 +50,25 @@ char *LerString(void){
   stringDinamica[tamString] = '\0';
 
   return stringDinamica;
+}
+
+char *LerStringComAspas(void){
+	char buffer[256];
+  char *stringDinamica;
+
+	scan_quote_string(buffer);
+
+	// Retorna tamanho da string sem o \0
+  int tamString = strlen(buffer);
+
+  // Alocar espaço na heap para a tamString + \0
+  stringDinamica = (char*) malloc(sizeof(char)*(tamString + 1));
+  strcpy(stringDinamica, buffer);
+  // Garante \0 no final da string
+  stringDinamica[tamString] = '\0';
+
+  return stringDinamica;
+
 }
 
 /*

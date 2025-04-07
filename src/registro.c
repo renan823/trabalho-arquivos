@@ -93,7 +93,7 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
     linha += 1;
 
     // Armazenar tamanho dos campos variaveis
-    int tamCamposVariaveis = 0;
+    int tamValorsVariaveis = 0;
 
     // Campo 4: country(strlen(country))
     if(*linha != ','){
@@ -106,7 +106,7 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
         string[tamString] = '\0';
         (*reg)->country = string; // Salva no registro.
         // Add string ao registro junto ao seu código e delimitador 
-        tamCamposVariaveis += tamString + 2;
+        tamValorsVariaveis += tamString + 2;
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
@@ -124,7 +124,7 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
         string[tamString] = '\0';
         (*reg)->attackType = string; // Salva no registro.
         // Add string ao registro junto ao seu código e delimitador 
-        tamCamposVariaveis += tamString + 2;
+        tamValorsVariaveis += tamString + 2;
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
@@ -142,7 +142,7 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
         string[tamString] = '\0';
         (*reg)->targetIndustry = string; // Salva no registro.
         // Add string ao registro junto ao seu código e delimitador 
-        tamCamposVariaveis += tamString + 2;
+        tamValorsVariaveis += tamString + 2;
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
@@ -160,57 +160,14 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
         string[tamString] = '\0';
         (*reg)->defenseMechanism = string; // Salva no registro.
         // Add string ao registro junto ao seu código e delimitador 
-        tamCamposVariaveis += tamString + 2;
+        tamValorsVariaveis += tamString + 2;
         // Andar tamanho do conteúdo como string
         linha += tamString;
     }
     // Somar o tamanho dos campos das variáveis
-    (*reg)->tamanhoRegistro += tamCamposVariaveis;
+    (*reg)->tamanhoRegistro += tamValorsVariaveis;
 
     return;
-}
-
-char *LerCampoVariavel(FILE *arquivo) {
-    int tam = 0;
-    int max = 50;
-    char c;
-
-    // Buffer para ler os dados
-    char *buffer = (char*) malloc(sizeof(char) * max);
-    if (buffer == NULL) {
-        return NULL;
-    }
-
-    while (fread(&c, sizeof(char), 1, arquivo) == 1 && c != '|') {
-        buffer[tam] = c;
-        tam++;
-       
-        // Aumenta o buffer se precisar
-        if (tam >= max) {
-            max *= 2;
-
-            char *bufferMaior = (char*) malloc(sizeof(char) * max);
-            if (bufferMaior == NULL) {
-                free(buffer);
-                return NULL;
-            }
-
-            buffer = bufferMaior;
-        }
-    }
-
-    // Alocar uma string
-    char *str = (char*) malloc(sizeof(char) * tam);
-    if (str == NULL) {
-        free(buffer);
-        return NULL;
-    }
-
-    strncpy(str, buffer, tam);
-
-    free(buffer);
-
-    return str;
 }
 
 /*Ler registro exceto campo removido*/
@@ -222,23 +179,110 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     }
 
     // Ler campos fixos(exceto byte removido)
-    fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo);
-    fread(&(reg->prox), sizeof(long int), 1, arquivo);
-    fread(&(reg->idAttack), sizeof(int), 1, arquivo);
-    fread(&(reg->year), sizeof(int), 1, arquivo);
-    fread(&(reg->financialLoss), sizeof(float), 1, arquivo);
+    fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
+    fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->financialLoss), sizeof(float), 1, arquivo); // 4 bytes
+    // Total de bytes armazenados = 20 bytes
+    int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
+    
+    if(tamRestanteRegistro != 0){
+        // Espaço para armazenar conteúdo restante do registro
+        char *buffer = (char*) malloc(sizeof(char)*tamRestanteRegistro);
 
-    // Ler country
-    reg->country = LerCampoVariavel(arquivo);
+        // Ler bytes restantes do arquivo
+        fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
+        
+        // Sumir com os delimitadores
+        strtok(buffer, "|");
+        while(strtok(NULL, "|"));
 
-    // Ler attackType
-    reg->attackType = LerCampoVariavel(arquivo);
+        // Variável auxiliar para percorrer buffer guardando campos
+        char *camposVar = buffer;
 
-    // Ler targetIndsutry
-    reg->targetIndustry = LerCampoVariavel(arquivo);
+        // Variavel para guardar o tamanho do valor do campo
+        int tamValor;
 
-    // Ler defenseMechanism
-    reg->defenseMechanism = LerCampoVariavel(arquivo);
+        // Preencher todos os campos
+        while(tamRestanteRegistro != 0){
+            switch (*camposVar)
+            {
+            // codDescreveCountry
+            case '1':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->country = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->country, camposVar);
+                // Garantir \0
+                (reg->country)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveAttackType
+            case '2':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->attackType = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->attackType, camposVar);
+                // Garantir \0
+                (reg->attackType)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveTargetIndustry
+            case '3':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->targetIndustry = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->targetIndustry, camposVar);
+                // Garantir \0
+                (reg->targetIndustry)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveDefense
+            case '4':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->defenseMechanism = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->defenseMechanism, camposVar);
+                // Garantir \0
+                (reg->defenseMechanism)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            
+            default:
+                // Erro: Código do campo não encotrado
+                break;
+            }
+        }
+
+        // Liberar memória
+        free(buffer);
+        buffer = NULL;
+    }
 
     return reg;
 }
@@ -347,7 +391,7 @@ void ExibirRegistro(REGISTRO *reg) {
 /*
 Função para imprimir registros filtrados pelos parametros
 */
-bool BuscaRegistroPorParametro(FILE *arquivo, REGISTRO *reg) {
+bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
@@ -356,7 +400,7 @@ bool BuscaRegistroPorParametro(FILE *arquivo, REGISTRO *reg) {
 
     // Atualizar ponteiro do arquivo para o início
     fseek(arquivo, 0, SEEK_SET);
-    
+
     char byteAtual;
     // Se o arquivo for não consistente, Falha no processamento do arquivo. 
     fread(&byteAtual, sizeof(char), 1, arquivo);
@@ -368,7 +412,7 @@ bool BuscaRegistroPorParametro(FILE *arquivo, REGISTRO *reg) {
     // Percorrer arquivo
     while(fread(&byteAtual, sizeof(char), 1, arquivo)){
         if(byteAtual == '1'){
-            // Se arquivo removido, pular para o próximo registro
+            // Se registro removido, pular para o próximo registro
             int tamRegistro;
             fread(&tamRegistro, sizeof(int), 4, arquivo);
             fseek(arquivo, tamRegistro, SEEK_CUR);
@@ -386,15 +430,49 @@ bool BuscaRegistroPorParametro(FILE *arquivo, REGISTRO *reg) {
                         ehRegistroValido = false;
                         break;
                     } 
+                } else if(reg->year != -1){
+                    if(reg->year != regAtual->year){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                } if(reg->financialLoss != -1){
+                    if(reg->financialLoss != regAtual->financialLoss){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                } if(reg->country != NULL){
+                    if(regAtual->country == NULL || strcmp(reg->country, regAtual->country)){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                } if(reg->attackType != NULL){
+                    if(regAtual->attackType == NULL || strcmp(reg->attackType, regAtual->attackType)){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                } if(reg->targetIndustry != NULL){
+                    if(regAtual->targetIndustry == NULL ||
+                        strcmp(reg->targetIndustry, regAtual->targetIndustry)
+                    ){
+                        ehRegistroValido = false;
+                        break;
+                    } 
+                } if(reg->defenseMechanism != NULL){
+                    if(regAtual->defenseMechanism == NULL ||
+                        strcmp(reg->defenseMechanism, regAtual->defenseMechanism)
+                    ){
+                        ehRegistroValido = false;
+                        break;
+                    }
                 }
             }
 
             if(ehRegistroValido){
                 ExibirRegistro(regAtual);
-                printf("\n**********\n");
             }
         }
     }
+    printf("**********\n");
 
     return true;
 }
