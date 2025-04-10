@@ -1,7 +1,8 @@
 #ifndef REGISTRO_H_
     #define REGISTRO_H_
 
-    #define SEPARARDO '|'
+    #define SEPARADOR '|'
+    #define REMOVIDO '1'
 
     #include "cabecalho.h"
 

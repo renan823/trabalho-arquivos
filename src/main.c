@@ -119,15 +119,13 @@ void FUNCIONALIDADE2(void) {
         return;
     }
 
-    printf("%d\n", c->nroRegArq);
-
     // Ler dados 
     int total = 0;
 
     while (total < c->nroRegArq) {
         REGISTRO *reg = LerRegistro(arquivo);
 
-        if (!reg->removido) {
+        if (reg != NULL && reg->removido != REMOVIDO) {
             ExibirRegistro(reg);
         }
 

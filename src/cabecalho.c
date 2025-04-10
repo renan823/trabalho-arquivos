@@ -77,7 +77,6 @@ void AtualizarCabecalho(
 /*
 Função que lê o cabeçalho do arquivo informado
 */
-
 CABECALHO *LerCabecalho(FILE **arquivo) {
     if (*arquivo == NULL) {
         return NULL;
@@ -86,7 +85,22 @@ CABECALHO *LerCabecalho(FILE **arquivo) {
     CABECALHO *c = (CABECALHO*) malloc(sizeof(CABECALHO));
 
     if (c != NULL) {
-        fread(c, 276, 1, *arquivo);
+        fread(&(c->status), sizeof(char), 1, *arquivo);
+        fread(&(c->topo), sizeof(long int), 1, *arquivo);
+        fread(&(c->proxByteOffset), sizeof(long int), 1, *arquivo);
+        fread(&(c->nroRegArq), sizeof(int), 1, *arquivo);
+        fread(&(c->nroRegRem), sizeof(int), 1, *arquivo);
+        fread(c->descreveIdentificador, sizeof(char), 23, *arquivo);
+        fread(c->descreveYear, sizeof(char), 27, *arquivo);
+        fread(c->descreveFinancialLoss, sizeof(char), 28, *arquivo);
+        fread(&(c->codDescreveCountry), sizeof(char), 1, *arquivo);
+        fread(c->descreveCountry, sizeof(char), 26, *arquivo);
+        fread(&(c->codDescreveType), sizeof(char), 1, *arquivo);
+        fread(c->descreveType, sizeof(char), 38, *arquivo);
+        fread(&(c->codDescreveTargetIndustry), sizeof(char), 1, *arquivo);
+        fread(c->descreveTargetIndustry, sizeof(char), 38, *arquivo);
+        fread(&(c->codDescreveDefense), sizeof(char), 1, *arquivo);
+        fread(c->descreveDefense, sizeof(char), 67, *arquivo);
     }
 
     return c;
