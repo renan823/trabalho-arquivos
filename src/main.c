@@ -92,52 +92,28 @@ void FUNCIONALIDADE1(void){
 Exibe os registros no arquivo de dados informado
 */
 void FUNCIONALIDADE2(void) {
+    // Ler nome dos arquivos de entrada e saída.
     char *nomeArquivoEntrada = LerString();
 
-    // Abrir arquivo para leitura
-    FILE *arquivo = fopen(nomeArquivoEntrada, "rb");
-    if (arquivo == NULL) {
+    // Abrir arquivos de entrada
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb");
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
-        return;
+    } else {
+        // Imprimir todos os registros.
+        BuscaTodosOsRegistros(arquivoEntrada);
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
     }
-
-    // Executar leitura
-    CABECALHO *c = LerCabecalho(&arquivo);
-
-    if (c == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Cabeçalho inconsistente não será lido
-    if (c->status == INCONSISTENTE) {
-        DispararErro(ErroProcessamentoArquivo());
-        return;
-    }
-
-    if (c->nroRegArq == 0) {
-        DispararErro(ErroRegistroInexistente());
-        return;
-    }
-
-    // Ler dados 
-    int total = 0;
-
-    while (total < c->nroRegArq) {
-        REGISTRO *reg = LerRegistro(arquivo);
-
-        if (reg != NULL && reg->removido != REMOVIDO) {
-            ExibirRegistro(reg);
-        }
-
-        ApagarRegistro(&reg); 
-
-        total++;
-    }
-
-    ApagarCabecalho(&c);
-
-    fclose(arquivo);
+    // Liberar memória 
     free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+
+    return;
 }
 
 /*
@@ -158,54 +134,49 @@ void FUNCIONALIDADE3(void){
     if(arquivoEntrada == NULL){
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
-    }
+    } else {
+        while(quantBuscas--){
+            // Quantidade de campos em cada busca(filtros).
+            int quantCampos;
+            scanf("%d", &quantCampos);
 
-    while(quantBuscas--){
-        // Quantidade de campos em cada busca(filtros).
-        int quantCampos;
-        scanf("%d", &quantCampos);
+            // Registro a ser usado como filtro
+            REGISTRO *reg = CriarRegistroVazio();
 
-        // Registro a ser usado como filtro
-        REGISTRO *reg = CriarRegistroVazio();
+            // Ler campos inseridos pelo usuário
+            for(int i = 0; i < quantCampos; i++){
+                char *campo = LerString();
+                // Switch case do campo
+                if(!strcmp(campo, "idAttack")){
+                    scanf(" %d", &(reg->idAttack));
+                } else if(!strcmp(campo, "year")) {
+                    scanf(" %d", &(reg->year));
+                } else if(!strcmp(campo, "financialLoss")) {
+                    scanf(" %f", &(reg->financialLoss));
+                } else if(!strcmp(campo, "country")) {
+                    reg->country = LerStringComAspas();
+                } else if(!strcmp(campo, "attackType")) {
+                    reg->attackType = LerStringComAspas();
+                } else if(!strcmp(campo, "targetIndustry")) {
+                    reg->targetIndustry = LerStringComAspas();
+                } else if(!strcmp(campo, "defenseMechanism")) {
+                    reg->defenseMechanism = LerStringComAspas();
+                } else {
+                    // TODO: erro select invalido
+                }
 
-        // Ler campos inseridos pelo usuário
-        for(int i = 0; i < quantCampos; i++){
-            char *campo = LerString();
-            // Switch case do campo
-            if(!strcmp(campo, "idAttack")){
-                scanf("%d", &(reg->idAttack));
-            } else if(!strcmp(campo, "year")) {
-                scanf("%d", &(reg->year));
-            } else if(!strcmp(campo, "financialLoss")) {
-                scanf("%f", &(reg->financialLoss));
-            } else if(!strcmp(campo, "country")) {
-                reg->country = LerStringComAspas();
-            } else if(!strcmp(campo, "attackType")) {
-                reg->attackType = LerStringComAspas();
-            } else if(!strcmp(campo, "targetIndustry")) {
-                reg->targetIndustry = LerStringComAspas();
-            } else if(!strcmp(campo, "defenseMechanism")) {
-                reg->defenseMechanism = LerStringComAspas();
-            } else {
-                // TODO: erro select invalido
+                free(campo);
+                campo = NULL;
             }
 
-            free(campo);
-            campo = NULL;
+            BuscaRegistroPorCampo(arquivoEntrada, reg);
+            // Apagar registro filtro
+            ApagarRegistro(&reg);
         }
-
-        bool registroEncontrado = BuscaRegistroPorCampo(arquivoEntrada, reg);
-        if(registroEncontrado == false){
-            DispararErro(ErroRegistroInexistente());
-        }
-        // Apagar registro filtro
-        ApagarRegistro(&reg);
-    }
-
-    // Fechar arquivo
-    fclose(arquivoEntrada);
-    arquivoEntrada = NULL;
-    
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+    }   
 
     // Liberar memória 
     free(nomeArquivoEntrada);

@@ -45,7 +45,7 @@ ERRO *ErroProcessamentoArquivo(void) {
 }
 
 ERRO *ErroRegistroInexistente(void) {
-    return ErroBase("Registro Inexistente.", false);
+    return ErroBase("Registro inexistente.\n", false);
 }
 
 ERRO *ErroCriarArquivo(void){

@@ -1,5 +1,4 @@
 #include "registro.h"
-
 #include "erros.h"
 #include "cabecalho.h"
 
@@ -8,7 +7,6 @@
 #include <stdio.h>
 
 #define MSG_VAZIO "NADA CONSTA"
-#define STR_EQUAL(a, b) (a != NULL && b != NULL && strcmp(a, b) == 0)
 
 int _LerCampoVariavel(char **campoReg, char *campoString);
 bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual);
@@ -195,85 +193,86 @@ int _LerCampoVariavel(char **campoReg, char *campoString) {
 }
 
 /*Ler registro exceto campo removido*/
-REGISTRO *LerRegistro(FILE *arquivo) {
-    REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
+// REGISTRO *LerRegistro(FILE *arquivo) {
+//     REGISTRO *reg = CriarRegistroVazio();
 
-    if (arquivo == NULL || reg == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
+//     if (arquivo == NULL || reg == NULL) {
+//         DispararErro(ErroPonteiroInvalido());
+//     }
 
-    // Ler campos no registro do arquivo
-    fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
-    fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
-    fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
-    fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
-    fread(&(reg->financialLoss), sizeof(float), 1, arquivo); // 4 bytes
-    // Total de bytes armazenados = 20 bytes(sem contar o primeiro byte)
-    int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
+//     // Ler campos no registro do arquivo
+//     fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
+//     fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
+//     fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
+//     fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
+//     fread(&(reg->financialLoss), sizeof(float), 1, arquivo); // 4 bytes
+//     // Total de bytes armazenados = 20 bytes(sem contar o primeiro byte)
+//     int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
     
-    if(tamRestanteRegistro != 0){
-        // Espaço para armazenar conteúdo restante do registro
-        char *buffer = (char*) malloc(sizeof(char)*tamRestanteRegistro);
+//     if(tamRestanteRegistro != 0){
+//         // Espaço para armazenar conteúdo restante do registro
+//         char *buffer = (char*) malloc(sizeof(char)*tamRestanteRegistro);
         
-        // Ler bytes restantes do arquivo
-        fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
+//         // Ler bytes restantes do arquivo
+//         fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
         
-        char sep = SEPARADOR;
-        // Sumir com os delimitadores
-        strtok(buffer, &sep);
-        while(strtok(NULL, &sep));
+//         char sep = SEPARADOR;
+//         // Sumir com os delimitadores
+//         strtok(buffer, &sep);
+//         while(strtok(NULL, &sep));
 
-        // Variável auxiliar para percorrer buffer guardando campos
-        char *camposVar = buffer;
-        // Variavel para guardar tamanho lido do campo
-        int tamCampo = 0;
+//         // Variável auxiliar para percorrer buffer guardando campos
+//         char *camposVar = buffer;
+//         // Variavel para guardar tamanho lido do campo
+//         int tamCampo = 0;
 
-        // Preencher todos os campos
-        while(tamRestanteRegistro != 0){
-            switch (*camposVar)
-            {
-            // codDescreveCountry
-            case '1':
-                // Ler campo variavel e atualizar para próximos campos
-                tamCampo = _LerCampoVariavel(&(reg->country), camposVar);
-                tamRestanteRegistro -= tamCampo;    
-                camposVar += tamCampo;
-                break;
-            // codDescreveAttackType
-            case '2':
-                // Ler campo variavel e atualizar para próximos campos
-                tamCampo = _LerCampoVariavel(&(reg->attackType), camposVar);
-                tamRestanteRegistro -= tamCampo;    
-                camposVar += tamCampo;
-                break;
-            // codDescreveTargetIndustry
-            case '3':
-                // Ler campo variavel e atualizar para próximos campos
-                tamCampo = _LerCampoVariavel(&(reg->targetIndustry), camposVar);
-                tamRestanteRegistro -= tamCampo;    
-                camposVar += tamCampo; 
-                break;
-            // codDescreveDefense
-            case '4':
-                // Ler campo variavel e atualizar para próximos campos
-                tamCampo = _LerCampoVariavel(&(reg->defenseMechanism), camposVar);
-                tamRestanteRegistro -= tamCampo;    
-                camposVar += tamCampo;
-                break;
+//         // Preencher todos os campos
+//         while(tamRestanteRegistro != 0){
+//             switch (*camposVar)
+//             {
+//             // codDescreveCountry
+//             case '1':
+//                 // Ler campo variavel e atualizar para próximos campos
+//                 tamCampo = _LerCampoVariavel(&(reg->country), camposVar);
+//                 tamRestanteRegistro -= tamCampo;    
+//                 camposVar += tamCampo;
+//                 break;
+//             // codDescreveAttackType
+//             case '2':
+//                 // Ler campo variavel e atualizar para próximos campos
+//                 tamCampo = _LerCampoVariavel(&(reg->attackType), camposVar);
+//                 tamRestanteRegistro -= tamCampo;    
+//                 camposVar += tamCampo;
+//                 break;
+//             // codDescreveTargetIndustry
+//             case '3':
+//                 // Ler campo variavel e atualizar para próximos campos
+//                 tamCampo = _LerCampoVariavel(&(reg->targetIndustry), camposVar);
+//                 tamRestanteRegistro -= tamCampo;    
+//                 camposVar += tamCampo; 
+//                 break;
+//             // codDescreveDefense
+//             case '4':
+//                 // Ler campo variavel e atualizar para próximos campos
+//                 tamCampo = _LerCampoVariavel(&(reg->defenseMechanism), camposVar);
+//                 tamRestanteRegistro -= tamCampo;    
+//                 camposVar += tamCampo;
+//                 break;
             
-            default:
-                // Erro: Código do campo não encotrado
-                break;
-            }
-        }
+//             default:
+//                 // Erro: Código do campo não encotrado
+//                 printf("Erro: código do campo não encontrado.\n");
+//                 break;
+//             }
+//         }
 
-        // Liberar memória
-        free(buffer);
-        buffer = NULL;
-    }
+//         // Liberar memória
+//         free(buffer);
+//         buffer = NULL;
+//     }
 
-    return reg;
-}
+//     return reg;
+// }
 
 /* 
 Função que escreve um registro em um arquivo binário
@@ -380,6 +379,8 @@ void ExibirRegistro(REGISTRO *reg) {
 
 // Retorna se um registro é valido dado um filtro
 bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual) {
+    if(filtro == NULL) return true;
+    if(atual == NULL) return false;
     /* Um registro é valido, se ele tem os filtros passados*/
     // Verifica idAttack
     if (filtro->idAttack != -1 && 
@@ -401,22 +402,26 @@ bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual) {
     
     // Verifica strings (country, attackType, etc.)
     if (filtro->country != NULL && 
-        (atual->country == NULL || strcmp(filtro->country, atual->country) != 0)) {
+        (atual->country == NULL || 
+            strcmp(filtro->country, atual->country) != 0)) {
         return false;
     }
     
     if (filtro->attackType != NULL && 
-        (atual->attackType == NULL || strcmp(filtro->attackType, atual->attackType) != 0)) {
+        (atual->attackType == NULL || 
+            strcmp(filtro->attackType, atual->attackType) != 0)) {
         return false;
     }
     
     if (filtro->targetIndustry != NULL && 
-        (atual->targetIndustry == NULL || strcmp(filtro->targetIndustry, atual->targetIndustry) != 0)) {
+        (atual->targetIndustry == NULL || 
+            strcmp(filtro->targetIndustry, atual->targetIndustry) != 0)) {
         return false;
     }
     
     if (filtro->defenseMechanism != NULL && 
-        (atual->defenseMechanism == NULL || strcmp(filtro->defenseMechanism, atual->defenseMechanism) != 0)) {
+        (atual->defenseMechanism == NULL || 
+            strcmp(filtro->defenseMechanism, atual->defenseMechanism) != 0)) {
         return false;
     }
     
@@ -427,7 +432,7 @@ bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual) {
 /*
 Função para imprimir registros filtrados pelos parametros
 */
-bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
+void BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
@@ -442,7 +447,7 @@ bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
     fread(&byteAtual, sizeof(char), 1, arquivo);
     if(byteAtual == INCONSISTENTE){ 
         DispararErro(ErroProcessamentoArquivo());
-        return true; 
+        return; 
     }
 
     // Atualizar ponteiro do arquivo para o início dos registros
@@ -455,7 +460,7 @@ bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
         if(byteAtual == REMOVIDO){
             // Se registro removido, pular para o próximo registro
             int tamRegistro;
-            fread(&tamRegistro, sizeof(int), 4, arquivo);
+            fread(&tamRegistro, sizeof(int), 1, arquivo);
             fseek(arquivo, tamRegistro, SEEK_CUR);
         } else {
             REGISTRO *regAtual = LerRegistro(arquivo);
@@ -465,11 +470,18 @@ bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
                 registroEncontrado = true;
                 ExibirRegistro(regAtual);
             }
+            ApagarRegistro(&regAtual);
         }
     }
+
+    if(registroEncontrado == false){
+        DispararErro(ErroRegistroInexistente());
+    }
+
     printf("**********\n");
 
-    return registroEncontrado;
+
+    return;
 }
 
 void ApagarRegistro(REGISTRO **reg) {
@@ -501,4 +513,170 @@ void ApagarRegistro(REGISTRO **reg) {
     // Desalocar registro todo
     free(*reg);
     *reg = NULL;
+}
+
+void BuscaTodosOsRegistros(FILE *arquivo){
+    // Se o arquivo de entrada não existir
+    if(arquivo == NULL){
+        // Dispara erro fatal.
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivo, 0, SEEK_SET);
+
+    char byteAtual;
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivo);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return; 
+    }
+
+    // Atualizar ponteiro do arquivo para o início dos registros
+    fseek(arquivo, 276, SEEK_SET);
+    
+    // Existe registro a ser buscado?
+    bool existeRegistro = false;
+    // Percorrer arquivo
+    while(fread(&byteAtual, sizeof(char), 1, arquivo)){
+        if(byteAtual == REMOVIDO){
+            // Se registro removido, pular para o próximo registro
+            int tamRegistro;
+            fread(&tamRegistro, sizeof(int), 1, arquivo);
+            fseek(arquivo, tamRegistro, SEEK_CUR);
+        } else {
+            existeRegistro = true;
+            REGISTRO *regAtual = LerRegistro(arquivo);
+            ExibirRegistro(regAtual);
+            ApagarRegistro(&regAtual);
+        }
+    }
+
+    if(existeRegistro == false){
+        DispararErro(ErroRegistroInexistente());
+    }
+
+    printf("**********\n");
+
+    return;
+}
+
+/*Ler registro exceto campo removido*/
+REGISTRO *LerRegistro(FILE *arquivo) {
+    REGISTRO *reg = CriarRegistroVazio();
+
+    if (arquivo == NULL || reg == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+        return NULL;
+    }
+
+    // Ler campos fixos(exceto byte removido)
+    fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
+    fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
+    fread(&(reg->financialLoss), sizeof(float), 1, arquivo); // 4 bytes
+    // Total de bytes armazenados = 20 bytes
+    int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
+    
+    if(tamRestanteRegistro >= 0){
+        // Espaço para armazenar conteúdo restante do registro
+        char *buffer = (char*) malloc(sizeof(char)*(tamRestanteRegistro + 1));
+        buffer[tamRestanteRegistro] = '\0'; // Garantir '\0'
+
+        // Ler bytes restantes do arquivo
+        fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
+        
+        // Sumir com os delimitadores
+        strtok(buffer, "|");
+        while(strtok(NULL, "|"));
+
+        // Variável auxiliar para percorrer buffer guardando campos
+        char *camposVar = buffer;
+
+        // Variavel para guardar o tamanho do valor do campo
+        int tamValor;
+
+        // Preencher todos os campos
+        while(tamRestanteRegistro != 0){
+            switch (*camposVar)
+            {
+            // codDescreveCountry
+            case '1':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->country = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->country, camposVar);
+                // Garantir \0
+                (reg->country)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveAttackType
+            case '2':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->attackType = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->attackType, camposVar);
+                // Garantir \0
+                (reg->attackType)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveTargetIndustry
+            case '3':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->targetIndustry = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->targetIndustry, camposVar);
+                // Garantir \0
+                (reg->targetIndustry)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            // codDescreveDefense
+            case '4':
+                camposVar++; // Pular byte do código
+                // Aloca espaço para valor do campo
+                tamValor = strlen(camposVar);
+                reg->defenseMechanism = (char*) malloc(sizeof(char)*(tamValor + 1));
+                // Preenche valor do campo
+                strcpy(reg->defenseMechanism, camposVar);
+                // Garantir \0
+                (reg->defenseMechanism)[tamValor] = '\0';
+                // Atualizar tamanho restante do registro
+                // codigo + nome + delimitador
+                tamRestanteRegistro -= (tamValor + 2);
+                // Atualizar ponteiro para próximo campo
+                camposVar += (tamValor + 1);
+                break;
+            
+            default:
+                // Erro: Código do campo não encotrado
+                break;
+            }
+        }
+
+        // Liberar memória
+        free(buffer);
+        buffer = NULL;
+    }
+
+    return reg;
 }
