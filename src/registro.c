@@ -9,6 +9,8 @@
 
 #define MSG_VAZIO "NADA CONSTA"
 
+int _LerCampoVariavel(,char **campoReg, char *campoString);
+
 /*
 Aloca memória para um registro.
 Dispara erro em caso de ponteiro NULL
@@ -170,53 +172,24 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
     return;
 }
 
-/* Ler um campo variável de string alocando memória*/
-void LerCampoVariavel(char **campo, FILE *arquivo) {
-    int lidos = 0;
-    int tam = 1024;
-
-    // Alocar buffer
-    char *buffer = (char*) malloc(tam * sizeof(char));
-    if (buffer == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Ler dados até achar separador
-    // Se precisar, aloca mais memória
-    char c = fgetc(arquivo);
-
-    while (c != EOF && c != SEPARADOR) {
-        buffer[lidos] = c;
-        lidos++;
-
-        // Redimensionar
-        if (lidos >= tam - 1) {
-            tam *= 2;
-
-            char *temp = (char *) realloc(buffer, tam);
-            if (temp == NULL) {
-                free(buffer);
-                DispararErro(ErroPonteiroInvalido());
-            }
-
-            buffer = temp;
-        }
-
-        c = fgetc(arquivo);
-    }
-
-    buffer[lidos] = '\0';
-
-    // Copiar buffer para campo e desalocar
-    *campo = (char*) malloc((lidos + 1) * sizeof(char));
-    if (*campo == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    strcpy(*campo, buffer);
-
-
-    free(buffer);
+/* 
+Ler um campo variável de string alocando memória
+Argumento: destino e origem
+Retorno: número de bytes lidos
+*/
+int _LerCampoVariavel(,char **campoReg, char *campoString) {
+    // Um campo variável é formado por keyword + valor(string) + delimitador("|")
+    campoString++; // Pular keyword
+    // Aloca espaço para valor do campo
+    tamValor = strlen(campoString);
+    *campoReg = (char*) malloc(sizeof(char)*(tamValor + 1));
+    // Preenche valor do campo
+    strcpy(*campoReg, campoString);
+    // Garantir \0
+    (*campoReg)[tamValor] = '\0';
+    // Retorna quantidade de bytes lidos
+    // (1 byte keyword + tamValor + 1 byte delimitador)
+    return (tamValor + 2);
 }
 
 /*Ler registro exceto campo removido*/
@@ -227,20 +200,82 @@ REGISTRO *LerRegistro(FILE *arquivo) {
         DispararErro(ErroPonteiroInvalido());
     }
 
+    // Ler campos no registro do arquivo
     fread(&(reg->removido), sizeof(char), 1, arquivo); // 1 byte
     fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
+    // Verificar se o registro foi removido.
+    if(reg->removido == REMOVIDO){
+        // Se o registro for removido, pula para o próximo registro dele.
+        fseek(arquivo, reg->tamanhoRegistro, SEEK_CUR);
+        ApagarRegistro(&reg);
+        return NULL; // Retorno para registro removido
+    }
+
     fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
     fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
     fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
     fread(&(reg->financialLoss), sizeof(float), 1, arquivo); // 4 bytes
+    // Total de bytes armazenados = 20 bytes(sem contar o primeiro byte)
+    int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
     
-    // Alocar e ler campos variaveis
+    if(tamRestanteRegistro != 0){
+        // Espaço para armazenar conteúdo restante do registro
+        char *buffer = (char*) malloc(sizeof(char)*tamRestanteRegistro);
+        
+        // Ler bytes restantes do arquivo
+        fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
+        
+        // Sumir com os delimitadores
+        strtok(buffer, "|");
+        while(strtok(NULL, "|"));
 
-    LerCampoVariavel(&reg->country, arquivo);
-    LerCampoVariavel(&reg->attackType, arquivo);
-    LerCampoVariavel(&reg->targetIndustry, arquivo);
-    LerCampoVariavel(&reg->defenseMechanism, arquivo);
-    
+        // Variável auxiliar para percorrer buffer guardando campos
+        char *camposVar = buffer;
+
+        // Preencher todos os campos
+        while(tamRestanteRegistro != 0){
+            switch (*camposVar)
+            {
+            // codDescreveCountry
+            case '1':
+                // Ler campo variavel e atualizar para próximos campos
+                int tamCampo = _LerCampoVariavel(&(reg->country), camposVar);
+                tamRestanteRegistro -= tamCampo;    
+                camposVar += tamCampo;
+                break;
+            // codDescreveAttackType
+            case '2':
+                // Ler campo variavel e atualizar para próximos campos
+                int tamCampo = _LerCampoVariavel(&(reg->attackType), camposVar);
+                tamRestanteRegistro -= tamCampo;    
+                camposVar += tamCampo;
+                break;
+            // codDescreveTargetIndustry
+            case '3':
+                // Ler campo variavel e atualizar para próximos campos
+                int tamCampo = _LerCampoVariavel(&(reg->targetIndustry), camposVar);
+                tamRestanteRegistro -= tamCampo;    
+                camposVar += tamCampo; 
+                break;
+            // codDescreveDefense
+            case '4':
+                // Ler campo variavel e atualizar para próximos campos
+                int tamCampo = _LerCampoVariavel(&(reg->defenseMechanism), camposVar);
+                tamRestanteRegistro -= tamCampo;    
+                camposVar += tamCampo;
+                break;
+            
+            default:
+                // Erro: Código do campo não encotrado
+                break;
+            }
+        }
+
+        // Liberar memória
+        free(buffer);
+        buffer = NULL;
+    }
+
     return reg;
 }
 
