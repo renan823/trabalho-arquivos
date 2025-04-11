@@ -556,9 +556,6 @@ void BuscaTodosOsRegistros(FILE *arquivo){
     if(existeRegistro == false){
         DispararErro(ErroRegistroInexistente());
     }
-
-    printf("**********\n");
-
     return;
 }
 
@@ -580,7 +577,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     // Total de bytes armazenados = 20 bytes
     int tamRestanteRegistro = (reg->tamanhoRegistro) - 20;
     
-    if(tamRestanteRegistro >= 0){
+    if(tamRestanteRegistro != 0){
         // Espaço para armazenar conteúdo restante do registro
         char *buffer = (char*) malloc(sizeof(char)*(tamRestanteRegistro + 1));
         buffer[tamRestanteRegistro] = '\0'; // Garantir '\0'
