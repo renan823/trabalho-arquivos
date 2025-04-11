@@ -194,8 +194,10 @@ void FUNCIONALIDADE3(void){
             campo = NULL;
         }
 
-        BuscaRegistroPorCampo(arquivoEntrada, reg);
-
+        bool registroEncontrado = BuscaRegistroPorCampo(arquivoEntrada, reg);
+        if(registroEncontrado == false){
+            DispararErro(ErroRegistroInexistente());
+        }
         // Apagar registro filtro
         ApagarRegistro(&reg);
     }

@@ -8,8 +8,10 @@
 #include <stdio.h>
 
 #define MSG_VAZIO "NADA CONSTA"
+#define STR_EQUAL(a, b) (a != NULL && b != NULL && strcmp(a, b) == 0)
 
-int _LerCampoVariavel(,char **campoReg, char *campoString);
+int _LerCampoVariavel(char **campoReg, char *campoString);
+bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual);
 
 /*
 Aloca memória para um registro.
@@ -177,11 +179,11 @@ Ler um campo variável de string alocando memória
 Argumento: destino e origem
 Retorno: número de bytes lidos
 */
-int _LerCampoVariavel(,char **campoReg, char *campoString) {
+int _LerCampoVariavel(char **campoReg, char *campoString) {
     // Um campo variável é formado por keyword + valor(string) + delimitador("|")
     campoString++; // Pular keyword
     // Aloca espaço para valor do campo
-    tamValor = strlen(campoString);
+    int tamValor = strlen(campoString);
     *campoReg = (char*) malloc(sizeof(char)*(tamValor + 1));
     // Preenche valor do campo
     strcpy(*campoReg, campoString);
@@ -201,16 +203,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     }
 
     // Ler campos no registro do arquivo
-    fread(&(reg->removido), sizeof(char), 1, arquivo); // 1 byte
     fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo); // 4 bytes
-    // Verificar se o registro foi removido.
-    if(reg->removido == REMOVIDO){
-        // Se o registro for removido, pula para o próximo registro dele.
-        fseek(arquivo, reg->tamanhoRegistro, SEEK_CUR);
-        ApagarRegistro(&reg);
-        return NULL; // Retorno para registro removido
-    }
-
     fread(&(reg->prox), sizeof(long int), 1, arquivo); // 8 bytes
     fread(&(reg->idAttack), sizeof(int), 1, arquivo); // 4 bytes
     fread(&(reg->year), sizeof(int), 1, arquivo); // 4 bytes
@@ -225,12 +218,15 @@ REGISTRO *LerRegistro(FILE *arquivo) {
         // Ler bytes restantes do arquivo
         fread(buffer, sizeof(char), tamRestanteRegistro, arquivo);
         
+        char sep = SEPARADOR;
         // Sumir com os delimitadores
-        strtok(buffer, "|");
-        while(strtok(NULL, "|"));
+        strtok(buffer, &sep);
+        while(strtok(NULL, &sep));
 
         // Variável auxiliar para percorrer buffer guardando campos
         char *camposVar = buffer;
+        // Variavel para guardar tamanho lido do campo
+        int tamCampo = 0;
 
         // Preencher todos os campos
         while(tamRestanteRegistro != 0){
@@ -239,28 +235,28 @@ REGISTRO *LerRegistro(FILE *arquivo) {
             // codDescreveCountry
             case '1':
                 // Ler campo variavel e atualizar para próximos campos
-                int tamCampo = _LerCampoVariavel(&(reg->country), camposVar);
+                tamCampo = _LerCampoVariavel(&(reg->country), camposVar);
                 tamRestanteRegistro -= tamCampo;    
                 camposVar += tamCampo;
                 break;
             // codDescreveAttackType
             case '2':
                 // Ler campo variavel e atualizar para próximos campos
-                int tamCampo = _LerCampoVariavel(&(reg->attackType), camposVar);
+                tamCampo = _LerCampoVariavel(&(reg->attackType), camposVar);
                 tamRestanteRegistro -= tamCampo;    
                 camposVar += tamCampo;
                 break;
             // codDescreveTargetIndustry
             case '3':
                 // Ler campo variavel e atualizar para próximos campos
-                int tamCampo = _LerCampoVariavel(&(reg->targetIndustry), camposVar);
+                tamCampo = _LerCampoVariavel(&(reg->targetIndustry), camposVar);
                 tamRestanteRegistro -= tamCampo;    
                 camposVar += tamCampo; 
                 break;
             // codDescreveDefense
             case '4':
                 // Ler campo variavel e atualizar para próximos campos
-                int tamCampo = _LerCampoVariavel(&(reg->defenseMechanism), camposVar);
+                tamCampo = _LerCampoVariavel(&(reg->defenseMechanism), camposVar);
                 tamRestanteRegistro -= tamCampo;    
                 camposVar += tamCampo;
                 break;
@@ -299,25 +295,29 @@ void EscreverRegistro(FILE **arquivo, REGISTRO *reg){
 
     // Escrever campos variáveis se existirem
     if(reg->country){
-        // Campo: country + SEPARADOR  
+        // Campo: codDescreveCountry + country + "|"  
+        fwrite("1", sizeof(char), 1, *arquivo);
         fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
     if(reg->attackType){
-        // Campo: attackType + SEPARADOR  
+        // Campo: codDescreveAttackType + attackType + "|"  
+        fwrite("2", sizeof(char), 1, *arquivo);
         fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
     if(reg->targetIndustry){
-        // Campo: targetIndustry + SEPARADOR  
+        // Campo: codDescreveTargetIndustry + targetIndustry + "|"  
+        fwrite("3", sizeof(char), 1, *arquivo);
         fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
     if(reg->defenseMechanism){
-        // Campo: defenseMechanism + SEPARADOR  
+        // Campo: codDescreveDefenseMechanism + defenseMechanism + "|"  
+        fwrite("4", sizeof(char), 1, *arquivo);
         fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
@@ -378,6 +378,52 @@ void ExibirRegistro(REGISTRO *reg) {
     printf("\n");
 }
 
+// Retorna se um registro é valido dado um filtro
+bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual) {
+    /* Um registro é valido, se ele tem os filtros passados*/
+    // Verifica idAttack
+    if (filtro->idAttack != -1 && 
+        filtro->idAttack != atual->idAttack) {
+        return false;
+    }
+    
+    // Verifica year
+    if (filtro->year != -1 && 
+        filtro->year != atual->year) {
+        return false;
+    }
+    
+    // Verifica financialLoss
+    if (filtro->financialLoss != -1 && 
+        filtro->financialLoss != atual->financialLoss) {
+        return false;
+    }
+    
+    // Verifica strings (country, attackType, etc.)
+    if (filtro->country != NULL && 
+        (atual->country == NULL || strcmp(filtro->country, atual->country) != 0)) {
+        return false;
+    }
+    
+    if (filtro->attackType != NULL && 
+        (atual->attackType == NULL || strcmp(filtro->attackType, atual->attackType) != 0)) {
+        return false;
+    }
+    
+    if (filtro->targetIndustry != NULL && 
+        (atual->targetIndustry == NULL || strcmp(filtro->targetIndustry, atual->targetIndustry) != 0)) {
+        return false;
+    }
+    
+    if (filtro->defenseMechanism != NULL && 
+        (atual->defenseMechanism == NULL || strcmp(filtro->defenseMechanism, atual->defenseMechanism) != 0)) {
+        return false;
+    }
+    
+    // Se todas as verificações passaram
+    return true;
+}
+
 /*
 Função para imprimir registros filtrados pelos parametros
 */
@@ -392,79 +438,38 @@ bool BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
     fseek(arquivo, 0, SEEK_SET);
 
     char byteAtual;
-    // Se o arquivo for não consistente, Falha no processamento do arquivo. 
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
     fread(&byteAtual, sizeof(char), 1, arquivo);
-    if(byteAtual == '0') return false;
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return true; 
+    }
 
-    // Atualizar ponteiro do arquivo para o início
+    // Atualizar ponteiro do arquivo para o início dos registros
     fseek(arquivo, 276, SEEK_SET);
     
+    // Existe registro a ser buscado?
+    bool registroEncontrado = false;
     // Percorrer arquivo
     while(fread(&byteAtual, sizeof(char), 1, arquivo)){
-        if(byteAtual == '1'){
+        if(byteAtual == REMOVIDO){
             // Se registro removido, pular para o próximo registro
             int tamRegistro;
             fread(&tamRegistro, sizeof(int), 4, arquivo);
             fseek(arquivo, tamRegistro, SEEK_CUR);
         } else {
             REGISTRO *regAtual = LerRegistro(arquivo);
-            bool ehRegistroValido = true;
-            // TODO: verificações registros
-            /*
-            Ideia: se existe em reg, deve ser verificado
-            Se valor for diferente, não deve ser impresso
-            */
-            for(int i = 0; i < 1; i++){
-                if(reg->idAttack != -1){
-                    if(reg->idAttack != regAtual->idAttack){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } else if(reg->year != -1){
-                    if(reg->year != regAtual->year){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } if(reg->financialLoss != -1){
-                    if(reg->financialLoss != regAtual->financialLoss){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } if(reg->country != NULL){
-                    if(regAtual->country == NULL || strcmp(reg->country, regAtual->country)){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } if(reg->attackType != NULL){
-                    if(regAtual->attackType == NULL || strcmp(reg->attackType, regAtual->attackType)){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } if(reg->targetIndustry != NULL){
-                    if(regAtual->targetIndustry == NULL ||
-                        strcmp(reg->targetIndustry, regAtual->targetIndustry)
-                    ){
-                        ehRegistroValido = false;
-                        break;
-                    } 
-                } if(reg->defenseMechanism != NULL){
-                    if(regAtual->defenseMechanism == NULL ||
-                        strcmp(reg->defenseMechanism, regAtual->defenseMechanism)
-                    ){
-                        ehRegistroValido = false;
-                        break;
-                    }
-                }
-            }
+            bool ehRegistroValido = _EhRegistroValido(reg, regAtual);
 
             if(ehRegistroValido){
+                registroEncontrado = true;
                 ExibirRegistro(regAtual);
             }
         }
     }
     printf("**********\n");
 
-    return true;
+    return registroEncontrado;
 }
 
 void ApagarRegistro(REGISTRO **reg) {
