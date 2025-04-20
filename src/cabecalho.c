@@ -17,7 +17,7 @@ CABECALHO *CriarCabecalhoPadrao(void) {
         // Inicializar campos do cabecalho
         c->status = CONSISTENTE;
         c->topo = -1;
-        c->proxByteOffset = 275;
+        c->proxByteOffset = TAM_HEAD - 1;
         c->nroRegArq = 0;
         c->nroRegRem = 0;
         memcpy(c->descreveIdentificador, "IDENTIFICADOR DO ATAQUE\0", 24);

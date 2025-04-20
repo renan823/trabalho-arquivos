@@ -52,6 +52,14 @@ ERRO *ErroCriarArquivo(void){
     return ErroBase("Falha ao criar arquivo.", true);
 }
 
+ERRO *ErroAlocacaoMemoria(void){
+    return ErroBase("Falha ao alocar memória.", true);
+}
+
+ERRO *ErroAoLerRegistro(void){
+    return ErroBase("Falha ao ler um registro.", true);
+}
+
 void DispararErro(ERRO *erro) {
     if (erro == NULL) {
         fprintf(stderr, "Falha ao emitir erro!\n");

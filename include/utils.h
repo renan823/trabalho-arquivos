@@ -2,9 +2,14 @@
     #define UTILS_H_
     
     #include<stdio.h>
+    #include<cabecalho.h>
+    #include<registro.h>
 
     // Retorna tamanho em bytes da linha a ser lida(0 caso chegue no final)
     char *PegarLinha(char **buffer, int tamBuffer,FILE *arquivoAberto);
+
+    // Ler arquivo CSV e escreve em binário.
+    void LerCsvParaBinario(FILE *arquivoEntrada, FILE *arquivoSaida);
 
     // Função lê uma string sem desperdício de memória
     char *LerString(void);

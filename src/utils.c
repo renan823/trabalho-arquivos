@@ -34,6 +34,53 @@ char *PegarLinha(char **buffer, int tamBuffer,FILE *arquivoAberto){
   return byteOffset == 0 ? NULL : (*buffer);
 }
 
+// Ler arquivo CSV e escreve em binário.
+void LerCsvParaBinario(FILE *arquivoEntrada, FILE *arquivoSaida){
+	// Escreve cabecalho em binario no arquivo de saida
+	CABECALHO *cabecalho =  CriarCabecalhoPadrao();
+	EscreverCabecalho(&arquivoSaida, cabecalho);
+	ApagarCabecalho(&cabecalho);
+
+	// Buffer para armazenar linha do CSV
+	int tamBuffer = 256;
+	char *buffer = (char*) malloc(sizeof(char)*tamBuffer);
+
+	// Eliminar introdução do arquivo CSV
+	PegarLinha(&buffer, tamBuffer, arquivoEntrada);
+
+	// número de registros não removidos presentes no arquivo
+	int nroRegArq = 0;
+
+	// Retorna tamanho da linha e não altera o ponteiro.
+	// Se o tamanho da linha for zero, não há dados a serem escritos mais(fim do arquivo).
+	while(PegarLinha(&buffer, tamBuffer, arquivoEntrada)){
+			// Adicionar numero de registros não removidos no arquivo.
+			nroRegArq++;
+			
+			// Preencher registro passando buffer
+			REGISTRO *reg = CriarRegistroVazio();
+			PreencherRegistro(&reg, buffer);
+			// Inserir registro em arquivo binário        
+			EscreverRegistro(&arquivoSaida, reg);
+
+			// Apagar registro
+			ApagarRegistro(&reg);
+	};
+	
+	// Guardar próximo byteOffSet disponível
+	long int proxByteOffset = ftell(arquivoSaida);
+
+	// Atualizar cabeçalho arquivo(-1 para não alterar campos desnecessários)
+	AtualizarCabecalho(&arquivoSaida, '1', -1, proxByteOffset, nroRegArq, -1);
+
+	// Liberar memória do buffer
+	free(buffer);
+	buffer = NULL;
+
+	return;
+}
+
+
 // Função lê uma string sem desperdício de memória
 char *LerString(void){
   char buffer[256];

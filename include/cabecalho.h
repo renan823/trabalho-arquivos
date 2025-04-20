@@ -3,6 +3,7 @@
 
     #define INCONSISTENTE '0'
     #define CONSISTENTE '1'
+    #define TAM_HEAD 276
 
     #include <stdio.h>
 
