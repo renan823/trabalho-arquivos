@@ -8,8 +8,118 @@
 
 #define MSG_VAZIO "NADA CONSTA"
 
-int _LerCampoVariavel(char **campoReg, char *campoString);
-bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual);
+// Função para preencher campos string de tamanho variavel
+void _PreencherCampoVariavel(char **campo, char **linha, int *tamVariaveis) {
+    if(**linha != ',' && **linha != '\0') {
+        int tamString = strlen(*linha);
+        char *string = malloc(sizeof(char) * (tamString + 1));
+        
+        if (string != NULL) {
+            strcpy(string, *linha);
+            string[tamString] = '\0';
+            *campo = string;
+            
+            *tamVariaveis += tamString + 2;
+            *linha += tamString;
+        }
+    }
+
+    *linha += 1;
+}
+
+// Função para ler campos fixos do registro
+int _LerCamposFixos(FILE *arquivo, REGISTRO *reg) {
+    if ((fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo)) != 1) {
+        return 0;
+    } 
+
+    if ((fread(&(reg->prox), sizeof(long int), 1, arquivo)) != 1) {
+        return 0;
+    }
+
+    if ((fread(&(reg->idAttack), sizeof(int), 1, arquivo)) != 1) {
+        return 0;
+    }
+
+    if ((fread(&(reg->year), sizeof(int), 1, arquivo)) != 1) {
+        return 0;
+    }
+
+    if ((fread(&(reg->financialLoss), sizeof(float), 1, arquivo)) != 1) {
+        return 0;
+    }
+
+    return 1;
+}
+
+// Função para alocar e copiar string de um campo variável
+char *_CopiarCampoString(const char *origem) {
+    int tam = strlen(origem);
+    char *destino = (char*) malloc(sizeof(char) * (tam + 1));
+
+    if (destino != NULL) {
+        strcpy(destino, origem);
+        destino[tam] = '\0';
+    }
+
+    return destino;
+}
+
+// Função para processar cada campo variável
+int _ProcessarCampoVariavel(char codigo, char *valor, REGISTRO *reg) {
+    switch (codigo) {
+        case '1': // country
+            reg->country = _CopiarCampoString(valor);
+            return reg->country != NULL;
+        case '2': // attackType
+            reg->attackType = _CopiarCampoString(valor);
+            return reg->attackType != NULL;
+        case '3': // targetIndustry
+            reg->targetIndustry = _CopiarCampoString(valor);
+            return reg->targetIndustry != NULL;
+        case '4': // defenseMechanism
+            reg->defenseMechanism = _CopiarCampoString(valor);
+            return reg->defenseMechanism != NULL;
+        default:
+            // Código inválido
+            return 0;
+    }
+}
+
+// Função para ler e processar campos variáveis
+int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
+    char *buffer = (char*) malloc(tamanhoRestante + 1);
+    if (!buffer) return 0;
+    
+    buffer[tamanhoRestante] = '\0';
+    if (fread(buffer, sizeof(char), tamanhoRestante, arquivo) != tamanhoRestante) {
+        free(buffer);
+        return 0;
+    }
+    
+    // srttok retorna NULL caso não encontre delimitador
+    // Processar campos delimitados por |
+    char *token = strtok(buffer, "|");
+    while (token != NULL) {
+        if (strlen(token) < 1) {
+            token = strtok(NULL, "|");
+            continue;
+        }
+        
+        char codigo = token[0];
+        char *valor = token + 1; // Pula o código
+        
+        if (!_ProcessarCampoVariavel(codigo, valor, reg)) {
+            free(buffer);
+            return 0;
+        }
+        
+        token = strtok(NULL, "|");
+    }
+    
+    free(buffer);
+    return 1;
+}
 
 /*
 Aloca memória para um registro.
@@ -37,19 +147,6 @@ REGISTRO *CriarRegistroVazio(void) {
     reg->defenseMechanism = NULL;
 
     return reg;
-}
-
-void PreencherCampoVariavel(char **campo, char **linha, int *tamVariaveis) {
-    if(**linha != ',' && **linha != '\0') {
-        int tamString = strlen(*linha);
-        char *string = malloc(sizeof(char) * (tamString + 1));
-        strcpy(string, *linha);
-        string[tamString] = '\0';
-        *campo = string;
-        *tamVariaveis += tamString + 2;
-        *linha += tamString;
-    }
-    *linha += 1;
 }
 
 
@@ -110,35 +207,15 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
     int tamCamposVariaveis = 0;
 
     // Preencher campos variáveis
-    PreencherCampoVariavel(&(*reg)->country, &linha, &tamCamposVariaveis);
-    PreencherCampoVariavel(&(*reg)->attackType, &linha, &tamCamposVariaveis);
-    PreencherCampoVariavel(&(*reg)->targetIndustry, &linha, &tamCamposVariaveis);
-    PreencherCampoVariavel(&(*reg)->defenseMechanism, &linha, &tamCamposVariaveis);
+    _PreencherCampoVariavel(&(*reg)->country, &linha, &tamCamposVariaveis);
+    _PreencherCampoVariavel(&(*reg)->attackType, &linha, &tamCamposVariaveis);
+    _PreencherCampoVariavel(&(*reg)->targetIndustry, &linha, &tamCamposVariaveis);
+    _PreencherCampoVariavel(&(*reg)->defenseMechanism, &linha, &tamCamposVariaveis);
 
     // Somar o tamanho dos campos das variáveis
     (*reg)->tamanhoRegistro += tamCamposVariaveis;
 
     return;
-}
-
-/* 
-Ler um campo variável de string alocando memória
-Argumento: destino e origem
-Retorno: número de bytes lidos
-*/
-int _LerCampoVariavel(char **campoReg, char *campoString) {
-    // Um campo variável é formado por keyword + valor(string) + delimitador("|")
-    campoString++; // Pular keyword
-    // Aloca espaço para valor do campo
-    int tamValor = strlen(campoString);
-    *campoReg = (char*) malloc(sizeof(char)*(tamValor + 1));
-    // Preenche valor do campo
-    strcpy(*campoReg, campoString);
-    // Garantir \0
-    (*campoReg)[tamValor] = '\0';
-    // Retorna quantidade de bytes lidos
-    // (1 byte keyword + tamValor + 1 byte delimitador)
-    return (tamValor + 2);
 }
 
 /* 
@@ -244,113 +321,10 @@ void ExibirRegistro(REGISTRO *reg) {
     printf("\n");
 }
 
-// Retorna se um registro é valido dado um filtro
-bool _EhRegistroValido(REGISTRO* filtro, REGISTRO* atual) {
-    if(filtro == NULL) return true;
-    if(atual == NULL) return false;
-    /* Um registro é valido, se ele tem os filtros passados*/
-    // Verifica idAttack
-    if (filtro->idAttack != -1 && 
-        filtro->idAttack != atual->idAttack) {
-        return false;
-    }
-    
-    // Verifica year
-    if (filtro->year != -1 && 
-        filtro->year != atual->year) {
-        return false;
-    }
-    
-    // Verifica financialLoss
-    if (filtro->financialLoss != -1 && 
-        filtro->financialLoss != atual->financialLoss) {
-        return false;
-    }
-    
-    // Verifica strings (country, attackType, etc.)
-    if (filtro->country != NULL && 
-        (atual->country == NULL || 
-            strcmp(filtro->country, atual->country) != 0)) {
-        return false;
-    }
-    
-    if (filtro->attackType != NULL && 
-        (atual->attackType == NULL || 
-            strcmp(filtro->attackType, atual->attackType) != 0)) {
-        return false;
-    }
-    
-    if (filtro->targetIndustry != NULL && 
-        (atual->targetIndustry == NULL || 
-            strcmp(filtro->targetIndustry, atual->targetIndustry) != 0)) {
-        return false;
-    }
-    
-    if (filtro->defenseMechanism != NULL && 
-        (atual->defenseMechanism == NULL || 
-            strcmp(filtro->defenseMechanism, atual->defenseMechanism) != 0)) {
-        return false;
-    }
-    
-    // Se todas as verificações passaram
-    return true;
-}
 
 /*
-Função para imprimir registros filtrados pelos parametros
+    Desaloca um registro da memória
 */
-void BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg) {
-    // Se o arquivo de entrada não existir
-    if(arquivo == NULL){
-        // Dispara erro fatal.
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Atualizar ponteiro do arquivo para o início
-    fseek(arquivo, 0, SEEK_SET);
-
-    char byteAtual;
-    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
-    fread(&byteAtual, sizeof(char), 1, arquivo);
-    if(byteAtual == INCONSISTENTE){ 
-        DispararErro(ErroProcessamentoArquivo());
-        return; 
-    }
-
-    // Atualizar ponteiro do arquivo para o início dos registros
-    fseek(arquivo, TAM_HEAD, SEEK_SET);
-    
-    // Existe registro a ser buscado?
-    bool registroEncontrado = false;
-    // Percorrer arquivo
-    while(fread(&byteAtual, sizeof(char), 1, arquivo)){
-        if(byteAtual == REMOVIDO){
-            // Se registro removido, pular para o próximo registro
-            int tamRegistro;
-            fread(&tamRegistro, sizeof(int), 1, arquivo);
-            fseek(arquivo, tamRegistro, SEEK_CUR);
-        } else {
-            REGISTRO *regAtual = LerRegistro(arquivo);
-            bool ehRegistroValido = _EhRegistroValido(reg, regAtual);
-
-            if(ehRegistroValido){
-                registroEncontrado = true;
-                ExibirRegistro(regAtual);
-            }
-            ApagarRegistro(&regAtual);
-        }
-    }
-
-    if(registroEncontrado == false){
-        DispararErro(ErroRegistroInexistente());
-    }
-
-    printf("**********\n");
-
-
-    return;
-}
-
 void ApagarRegistro(REGISTRO **reg) {
     if (*reg == NULL) {
        DispararErro(ErroPonteiroInvalido());
@@ -382,128 +356,6 @@ void ApagarRegistro(REGISTRO **reg) {
     *reg = NULL;
 }
 
-void BuscaTodosOsRegistros(FILE *arquivo){
-    // Se o arquivo de entrada não existir
-    if(arquivo == NULL){
-        // Dispara erro fatal.
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Atualizar ponteiro do arquivo para o início
-    fseek(arquivo, 0, SEEK_SET);
-
-    char byteAtual;
-    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
-    fread(&byteAtual, sizeof(char), 1, arquivo);
-    if(byteAtual == INCONSISTENTE){ 
-        DispararErro(ErroProcessamentoArquivo());
-        return; 
-    }
-
-    // Atualizar ponteiro do arquivo para o início dos registros
-    fseek(arquivo, TAM_HEAD, SEEK_SET);
-    
-    // Existe registro a ser buscado?
-    bool existeRegistro = false;
-    // Percorrer arquivo
-    while(fread(&byteAtual, sizeof(char), 1, arquivo)){
-        if(byteAtual == REMOVIDO){
-            // Se registro removido, pular para o próximo registro
-            int tamRegistro;
-            fread(&tamRegistro, sizeof(int), 1, arquivo);
-            fseek(arquivo, tamRegistro, SEEK_CUR);
-        } else {
-            existeRegistro = true;
-            REGISTRO *regAtual = LerRegistro(arquivo);
-            if(regAtual) ExibirRegistro(regAtual);
-            else DispararErro(ErroAoLerRegistro());
-            ApagarRegistro(&regAtual);
-        }
-    }
-
-    if(existeRegistro == false){
-        DispararErro(ErroRegistroInexistente());
-    }
-    return;
-}
-
-// Função para ler campos fixos do registro
-int LerCamposFixos(FILE *arquivo, REGISTRO *reg) {
-    if ((fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo)) != 1) return 0;
-    if ((fread(&(reg->prox), sizeof(long int), 1, arquivo)) != 1) return 0;
-    if ((fread(&(reg->idAttack), sizeof(int), 1, arquivo)) != 1) return 0;
-    if ((fread(&(reg->year), sizeof(int), 1, arquivo)) != 1) return 0;
-    if ((fread(&(reg->financialLoss), sizeof(float), 1, arquivo)) != 1) return 0;
-    return 1;
-}
-
-// Função para alocar e copiar string de um campo variável
-char* CopiarCampoString(const char *origem) {
-    int tam = strlen(origem);
-    char *destino = (char*) malloc(sizeof(char) * (tam + 1));
-    if (destino) {
-        strcpy(destino, origem);
-        destino[tam] = '\0';
-    }
-    return destino;
-}
-
-// Função para processar cada campo variável
-int ProcessarCampoVariável(char codigo, char *valor, REGISTRO *reg) {
-    switch (codigo) {
-        case '1': // country
-            reg->country = CopiarCampoString(valor);
-            return reg->country != NULL;
-        case '2': // attackType
-            reg->attackType = CopiarCampoString(valor);
-            return reg->attackType != NULL;
-        case '3': // targetIndustry
-            reg->targetIndustry = CopiarCampoString(valor);
-            return reg->targetIndustry != NULL;
-        case '4': // defenseMechanism
-            reg->defenseMechanism = CopiarCampoString(valor);
-            return reg->defenseMechanism != NULL;
-        default:
-            // Código inválido
-            return 0;
-    }
-}
-
-// Função para ler e processar campos variáveis
-int LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
-    char *buffer = (char*) malloc(tamanhoRestante + 1);
-    if (!buffer) return 0;
-    
-    buffer[tamanhoRestante] = '\0';
-    if (fread(buffer, sizeof(char), tamanhoRestante, arquivo) != tamanhoRestante) {
-        free(buffer);
-        return 0;
-    }
-    
-    // srttok retorna NULL caso não encontre delimitador
-    // Processar campos delimitados por |
-    char *token = strtok(buffer, "|");
-    while (token != NULL) {
-        if (strlen(token) < 1) {
-            token = strtok(NULL, "|");
-            continue;
-        }
-        
-        char codigo = token[0];
-        char *valor = token + 1; // Pula o código
-        
-        if (!ProcessarCampoVariável(codigo, valor, reg)) {
-            free(buffer);
-            return 0;
-        }
-        
-        token = strtok(NULL, "|");
-    }
-    
-    free(buffer);
-    return 1;
-}
-
 REGISTRO *LerRegistro(FILE *arquivo) {
     if (arquivo == NULL) {
         DispararErro(ErroPonteiroInvalido());
@@ -517,7 +369,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     }
     
     // Ler campos fixos
-    if (!LerCamposFixos(arquivo, reg)) {
+    if (!_LerCamposFixos(arquivo, reg)) {
         ApagarRegistro(&reg);
         return NULL;
     }
@@ -526,7 +378,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     int tamRestante = reg->tamanhoRegistro - 20; // 20 bytes dos campos fixos
     
     // Ler campos variáveis se existirem
-    if (tamRestante > 0 && !LerCamposVariaveis(arquivo, tamRestante, reg)) {
+    if (tamRestante > 0 && !_LerCamposVariaveis(arquivo, tamRestante, reg)) {
         ApagarRegistro(&reg);
         return NULL;
     }

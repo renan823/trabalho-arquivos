@@ -6,7 +6,7 @@
 
     #include "cabecalho.h"
 
-    #include<stdbool.h>
+    #include <stdbool.h>
 
     /*
     Registro do arquivo de dados.
@@ -52,10 +52,7 @@
     REGISTRO *CriarRegistroVazio(void);
     void ExibirRegistro(REGISTRO *reg);
     void ApagarRegistro(REGISTRO **reg);
-    void PreencherRegistro(REGISTRO **reg,char *buffer);
-    void EscreverRegistro(FILE **arquivoSaida,REGISTRO *reg);
+    void PreencherRegistro(REGISTRO **reg, char *buffer);
+    void EscreverRegistro(FILE **arquivo, REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
-    void BuscaRegistroPorCampo(FILE *arquivo, REGISTRO *reg);
-    void BuscaTodosOsRegistros(FILE *arquivo);
-
 #endif

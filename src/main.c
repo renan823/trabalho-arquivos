@@ -2,6 +2,7 @@
 #include "cabecalho.h"
 #include "registro.h"
 #include "utils.h"
+#include "buscar.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +67,7 @@ void FUNCIONALIDADE2(void) {
         DispararErro(ErroProcessamentoArquivo());
     } else {
         // Imprimir todos os registros.
-        BuscaTodosOsRegistros(arquivoEntrada);
+        Buscar(arquivoEntrada);
         // Fechar arquivo
         fclose(arquivoEntrada);
         arquivoEntrada = NULL;
@@ -131,7 +132,7 @@ void FUNCIONALIDADE3(void){
                 campo = NULL;
             }
 
-            BuscaRegistroPorCampo(arquivoEntrada, reg);
+            BuscarComFiltro(arquivoEntrada, reg);
             // Apagar registro filtro
             ApagarRegistro(&reg);
         }
