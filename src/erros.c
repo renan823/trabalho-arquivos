@@ -18,6 +18,7 @@ ERRO *ErroBase(char *mensagem, bool fatal) {
         // Alocar espaço para a string e o \0
         int tamString = strlen(mensagem);
         erro->mensagem = (char*) malloc(sizeof(char)*(tamString + 1));
+        
         if (erro->mensagem != NULL) {
             strcpy(erro->mensagem, mensagem);
             // Garantir \0 para evitar erros
