@@ -221,6 +221,54 @@ void FUNCIONALIDADE4(void){
     return;
 }
 
+/*
+Insere um registro
+*/
+void FUNCIONALIDADE5(void){
+    // Ler nome do arquivo de entrada.
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivo de entrada para leitura e escrita
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
+
+    // Quantidades de remoções a serem realizadas
+    int quantInsert;
+    scanf("%d", &quantInsert);
+
+    // Nota: talvez no run codes possa haver \r\n
+    // Logo, se der erro FUNC5, observar isso.
+    // Limpa stdin(retira \n residual).
+    char ch; scanf("%c", &ch); 
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada != NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantInsert--){
+            // Ler entrada da inserção.
+            char *buffer = (char*) malloc(256*sizeof(char));
+            PegarLinha(&buffer, 256, stdin);
+            printf("%s\n", buffer);
+            free(buffer);
+            buffer = NULL;
+        }
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoEntrada);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+
+    return;
+}
+
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
     int funcionalidade;
@@ -239,7 +287,9 @@ int main(void) {
         case 4:
             FUNCIONALIDADE4();
             break;
-
+        case 5:
+            FUNCIONALIDADE5();
+            break;
         default:
             break;
     }   
