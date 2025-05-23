@@ -55,7 +55,7 @@ void FUNCIONALIDADE1(void){
 Exibe os registros no arquivo de dados informado
 */
 void FUNCIONALIDADE2(void) {
-    // Ler nome dos arquivos de entrada e saída.
+    // Ler nome do arquivo de entrada.
     char *nomeArquivoEntrada = LerString();
 
     // Abrir arquivos de entrada
@@ -83,7 +83,7 @@ void FUNCIONALIDADE2(void) {
 Busca registros de acordo com um filtro
 */
 void FUNCIONALIDADE3(void){
-    // Ler nome dos arquivos de entrada e saída.
+    // Ler nome do arquivo de entrada.
     char *nomeArquivoEntrada = LerString();
 
     // Abrir arquivos de entrada
@@ -148,6 +148,79 @@ void FUNCIONALIDADE3(void){
     return;
 }
 
+/*
+Remove registros logicamente de acordo com filtro
+*/
+void FUNCIONALIDADE4(void){
+    // Ler nome do arquivo de entrada.
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivo de entrada para leitura e escrita
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
+
+    // Quantidades de remoções a serem realizadas
+    int quantRemove;
+    scanf("%d", &quantRemove);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantRemove--){
+            // Quantidade de campos em cada busca(filtros).
+            int quantCampos;
+            scanf("%d", &quantCampos);
+
+            // Registro a ser usado como filtro
+            REGISTRO *reg = CriarRegistroVazio();
+
+            // Ler campos inseridos pelo usuário
+            for(int i = 0; i < quantCampos; i++){
+                char *campo = LerString();
+                // Switch case do campo
+                if(!strcmp(campo, "idAttack")){
+                    scanf(" %d", &(reg->idAttack));
+                } else if(!strcmp(campo, "year")) {
+                    scanf(" %d", &(reg->year));
+                } else if(!strcmp(campo, "financialLoss")) {
+                    scanf(" %f", &(reg->financialLoss));
+                } else if(!strcmp(campo, "country")) {
+                    reg->country = LerStringComAspas();
+                } else if(!strcmp(campo, "attackType")) {
+                    reg->attackType = LerStringComAspas();
+                } else if(!strcmp(campo, "targetIndustry")) {
+                    reg->targetIndustry = LerStringComAspas();
+                } else if(!strcmp(campo, "defenseMechanism")) {
+                    reg->defenseMechanism = LerStringComAspas();
+                } else {
+                    // TODO: erro select invalido
+                }
+
+                free(campo);
+                campo = NULL;
+            }
+
+            RemoverRegistro(arquivoEntrada, reg);
+            // Apagar registro filtro
+            ApagarRegistro(&reg);
+        }
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoEntrada);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+
+    return;
+}
+
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
     int funcionalidade;
@@ -162,6 +235,9 @@ int main(void) {
             break;
         case 3:
             FUNCIONALIDADE3();
+            break;
+        case 4:
+            FUNCIONALIDADE4();
             break;
 
         default:

@@ -7,4 +7,6 @@
 
     void BuscarComFiltro(FILE *arquivo, REGISTRO *reg);
     void Buscar(FILE *arquivo);
+
+    void RemoverRegistro(FILE *arquivo, REGISTRO *reg);
 #endif

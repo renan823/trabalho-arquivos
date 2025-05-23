@@ -167,3 +167,55 @@ void BuscarComFiltro(FILE *arquivo, REGISTRO *reg) {
 
     return;
 }
+
+void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
+    // Se o arquivo de entrada não existir
+    if(arquivo == NULL){
+        // Dispara erro fatal.
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivo, 0, SEEK_SET);
+
+    char byteAtual;
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivo);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return; 
+    }
+
+    // Atualizar ponteiro do arquivo para o início dos registros
+    fseek(arquivo, TAM_HEAD, SEEK_SET);
+    
+    // Existe registro a ser buscado?
+    bool registroEncontrado = false;
+
+    // Percorrer arquivo
+    while(fread(&byteAtual, sizeof(char), 1, arquivo)){
+        if(byteAtual == REMOVIDO){
+            // Se registro removido, pular para o próximo registro
+            int tamRegistro;
+            fread(&tamRegistro, sizeof(int), 1, arquivo);
+            fseek(arquivo, tamRegistro, SEEK_CUR);
+        } else {
+            REGISTRO *regAtual = LerRegistro(arquivo);
+
+            if(_ValidarRegistroFiltrado(reg, regAtual)){
+                registroEncontrado = true;
+                ExibirRegistro(regAtual);
+            }
+
+            ApagarRegistro(&regAtual);
+        }
+    }
+
+    if(registroEncontrado == false){
+        DispararErro(ErroRegistroInexistente());
+    }
+
+    printf("**********\n");
+
+    return;
+}
