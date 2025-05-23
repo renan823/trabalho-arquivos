@@ -38,7 +38,7 @@ CABECALHO *CriarCabecalhoPadrao(void) {
 
 /*
 Função que atualiza o cabeçalho de um arquivo binário
-OBS: campos com -1 não são alterados
+OBS: campos com -1 não são alterados, o valor status é obrigatorio.
 */
 void AtualizarCabecalho(
     FILE **arquivo,
@@ -53,6 +53,7 @@ void AtualizarCabecalho(
         DispararErro(ErroPonteiroInvalido());
     }
 
+    // Garante início do arquivo
     fseek(*arquivo, 0, SEEK_SET);
 
     // Sempre é necessário enviar o valor do status
@@ -81,6 +82,9 @@ CABECALHO *LerCabecalho(FILE **arquivo) {
     if (*arquivo == NULL) {
         return NULL;
     }
+
+    // Garante início do arquivo
+    fseek(*arquivo, 0, SEEK_SET);
 
     CABECALHO *c = (CABECALHO*) malloc(sizeof(CABECALHO));
 
@@ -113,6 +117,9 @@ void EscreverCabecalho(FILE **arquivo, CABECALHO *c) {
     if (*arquivo == NULL || c == NULL) {
         DispararErro(ErroPonteiroInvalido());
     }
+
+    // Garante início do arquivo
+    fseek(*arquivo, 0, SEEK_SET);
 
     // Escrever dados
     fwrite(&(c->status), sizeof(char), 1, *arquivo);

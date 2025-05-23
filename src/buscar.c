@@ -168,7 +168,7 @@ void BuscarComFiltro(FILE *arquivo, REGISTRO *reg) {
     return;
 }
 
-void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
+void RemoverRegistrosComFiltro(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
@@ -188,9 +188,9 @@ void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
 
     // Atualizar ponteiro do arquivo para o início dos registros
     fseek(arquivo, TAM_HEAD, SEEK_SET);
-    
-    // Existe registro a ser buscado?
-    bool registroEncontrado = false;
+
+    // Necessário para atualizar o cabeçalho.
+    int quantRegRemovidos = 0;
 
     // Percorrer arquivo
     while(fread(&byteAtual, sizeof(char), 1, arquivo)){
@@ -203,19 +203,21 @@ void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
             REGISTRO *regAtual = LerRegistro(arquivo);
 
             if(_ValidarRegistroFiltrado(reg, regAtual)){
-                registroEncontrado = true;
-                ExibirRegistro(regAtual);
+                // TO-DO: Lógica de remoção de um registro
+                RemoverRegistro(arquivo, regAtual);
+                quantRegRemovidos++;
+
             }
 
             ApagarRegistro(&regAtual);
         }
     }
 
-    if(registroEncontrado == false){
-        DispararErro(ErroRegistroInexistente());
-    }
-
-    printf("**********\n");
+    CABECALHO *c = LerCabecalho(&arquivo);
+    c->nroRegRem += quantRegRemovidos;
+    c->nroRegArq -= quantRegRemovidos;
+    EscreverCabecalho(&arquivo, c);
+    ApagarCabecalho(&c);
 
     return;
 }

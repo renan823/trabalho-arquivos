@@ -8,6 +8,13 @@
 
 #define MSG_VAZIO "NADA CONSTA"
 
+// Função que ajusta lixo dos campos variaveis.
+void _ajustarLixo(char *campoVariavel){
+    for(int i = 0; campoVariavel[i] != '\0'; i++){
+        campoVariavel[i] = '$';
+    }
+}
+
 // Função para preencher campos string de tamanho variavel
 void _PreencherCampoVariavel(char **campo, char **linha, int *tamVariaveis) {
     if(**linha != ',' && **linha != '\0') {
@@ -384,4 +391,38 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     }
     
     return reg;
+}
+
+void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
+    if (arquivo == NULL || reg == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+        return;
+    }
+    // Guarda início do registro.
+    long int byteAtual = (ftell(arquivo) - 1);
+
+    // Busca, guarda e atualiza o topo da lista
+    long int topo;
+    fseek(arquivo, TOPO, SEEK_SET);
+    fread(&topo, sizeof(long int), 1, arquivo);
+    fwrite(&byteAtual, sizeof(long int), 1, arquivo);
+
+    // Volta ponteiro do arquivo para início do registro
+    fseek(arquivo, byteAtual, SEEK_SET);
+
+    // Salvar dados a serem mantidos no registrador
+    // e faz o ajuste do lixo decorrente dos dados antigos.
+    reg->removido = '1';
+    reg->prox = topo;
+    reg->idAttack = -1;
+    reg->year = -1;
+    reg->financialLoss = -1;
+    // Simboliza lixo do campo variável com '$'
+    if (reg->country) _ajustarLixo(reg->country);
+    if (reg->attackType) _ajustarLixo(reg->attackType);  
+    if (reg->targetIndustry) _ajustarLixo(reg->targetIndustry); 
+    if (reg->defenseMechanism) _ajustarLixo(reg->defenseMechanism);
+
+    EscreverRegistro(&arquivo, reg);
+    return;
 }

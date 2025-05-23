@@ -55,4 +55,6 @@
     void PreencherRegistro(REGISTRO **reg, char *buffer);
     void EscreverRegistro(FILE **arquivo, REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
+    void RemoverRegistro(FILE *arquivo, REGISTRO *reg);
+
 #endif

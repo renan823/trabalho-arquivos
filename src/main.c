@@ -201,7 +201,7 @@ void FUNCIONALIDADE4(void){
                 campo = NULL;
             }
 
-            RemoverRegistro(arquivoEntrada, reg);
+            RemoverRegistrosComFiltro(arquivoEntrada, reg);
             // Apagar registro filtro
             ApagarRegistro(&reg);
         }
