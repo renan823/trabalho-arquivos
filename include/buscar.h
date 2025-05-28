@@ -9,4 +9,5 @@
     void Buscar(FILE *arquivo);
 
     void RemoverRegistrosComFiltro(FILE *arquivo, REGISTRO *reg);
+    void InserirRegistro(FILE *arquivo, REGISTRO *reg);
 #endif

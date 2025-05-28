@@ -172,7 +172,7 @@ void RemoverRegistrosComFiltro(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
-        DispararErro(ErroPonteiroInvalido());
+        DispararErro(ErroArquivoInvalido());
     }
 
     // Atualizar ponteiro do arquivo para o início
@@ -201,6 +201,9 @@ void RemoverRegistrosComFiltro(FILE *arquivo, REGISTRO *reg) {
             fseek(arquivo, tamRegistro, SEEK_CUR);
         } else {
             REGISTRO *regAtual = LerRegistro(arquivo);
+            if(regAtual == NULL){
+                DispararErro(ErroAoLerRegistro());
+            }
 
             if(_ValidarRegistroFiltrado(reg, regAtual)){
                 // TO-DO: Lógica de remoção de um registro
@@ -226,8 +229,9 @@ void InserirRegistro(FILE *arquivo, REGISTRO *reg) {
     // Se o arquivo de entrada não existir
     if(arquivo == NULL){
         // Dispara erro fatal.
-        DispararErro(ErroPonteiroInvalido());
+        DispararErro(ErroArquivoInvalido());
     }
+    CABECALHO *c = LerCabecalho(&arquivo);
 
     // Atualizar ponteiro do arquivo para o início
     fseek(arquivo, 0, SEEK_SET);
@@ -287,8 +291,8 @@ void InserirRegistro(FILE *arquivo, REGISTRO *reg) {
             }
         }
     }
+    
 
-    CABECALHO *c = LerCabecalho(&arquivo);
     c->nroRegRem -= (inseriFim ? 0 : 1);
     c->nroRegArq++;
     EscreverCabecalho(&arquivo, c);

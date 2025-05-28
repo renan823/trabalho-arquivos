@@ -233,25 +233,21 @@ void FUNCIONALIDADE5(void){
 
     // Quantidades de remoções a serem realizadas
     int quantInsert;
-    scanf("%d", &quantInsert);
-
-    // Nota: talvez no run codes possa haver \r\n
-    // Logo, se der erro FUNC5, observar isso.
-    // Limpa stdin(retira \n residual).
-    char ch; scanf("%c", &ch); 
+    scanf("%d\n", &quantInsert);
 
     // Verificar se arquivo de entrada existe
-    if(arquivoEntrada != NULL){
+    if(arquivoEntrada == NULL){
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
         while(quantInsert--){
             // Ler entrada da inserção.
-            char *buffer = (char*) malloc(256*sizeof(char));
-            PegarLinha(&buffer, 256, stdin);
-            printf("%s\n", buffer);
-            free(buffer);
-            buffer = NULL;
+            REGISTRO *reg = CriarRegistroVazio();
+            
+            // TO-DO: Ler entrada.
+            // InserirRegistro(arquivoEntrada, reg);
+
+            ApagarRegistro(&reg);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);

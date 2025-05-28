@@ -61,11 +61,13 @@ int _LerCamposFixos(FILE *arquivo, REGISTRO *reg) {
 
 // Função para alocar e copiar string de um campo variável
 char *_CopiarCampoString(const char *origem) {
-    int tam = strlen(origem);
+    int tam = 0;
+    // Tomar cuidado para não tratar lixo como parte da string.
+    while(origem[tam] != '$' && origem[tam] != '\0') tam++;
     char *destino = (char*) malloc(sizeof(char) * (tam + 1));
 
     if (destino != NULL) {
-        strcpy(destino, origem);
+        strncpy(destino, origem, tam);
         destino[tam] = '\0';
     }
 
@@ -95,7 +97,7 @@ int _ProcessarCampoVariavel(char codigo, char *valor, REGISTRO *reg) {
 
 // Função para ler e processar campos variáveis
 int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
-    char *buffer = (char*) malloc(tamanhoRestante + 1);
+    char *buffer = (char*) malloc((tamanhoRestante + 1)*sizeof(char));
     if (!buffer) return 0;
     
     buffer[tamanhoRestante] = '\0';
@@ -114,6 +116,7 @@ int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
         }
         
         char codigo = token[0];
+        if(codigo == '$') break;
         char *valor = token + 1; // Pula o código
         
         if (!_ProcessarCampoVariavel(codigo, valor, reg)) {
@@ -229,7 +232,9 @@ void PreencherRegistro(REGISTRO **reg, char *buffer){
 Função que escreve um registro em um arquivo binário
 */
 void EscreverRegistro(FILE **arquivo, REGISTRO *reg){
-    if (*arquivo == NULL || reg == NULL) {
+    if (*arquivo == NULL) DispararErro(ErroArquivoInvalido());
+    if (reg == NULL) {
+        printf("Passado registro nulo para ser escrito.\n");
         DispararErro(ErroPonteiroInvalido());
     }
 
@@ -333,9 +338,10 @@ void ExibirRegistro(REGISTRO *reg) {
     Desaloca um registro da memória
 */
 void ApagarRegistro(REGISTRO **reg) {
-    if (*reg == NULL) {
-       DispararErro(ErroPonteiroInvalido());
-    } 
+    if (*reg == NULL){
+        printf("Passado registro nulo para ser apagado.\n");
+        DispararErro(ErroPonteiroInvalido());
+    }
 
     // Desalocar campos variáveis
     if ((*reg)->country != NULL) {
@@ -365,7 +371,7 @@ void ApagarRegistro(REGISTRO **reg) {
 
 REGISTRO *LerRegistro(FILE *arquivo) {
     if (arquivo == NULL) {
-        DispararErro(ErroPonteiroInvalido());
+        DispararErro(ErroArquivoInvalido());
         return NULL;
     }
     
@@ -377,15 +383,17 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     
     // Ler campos fixos
     if (!_LerCamposFixos(arquivo, reg)) {
+        printf("Erro ao ler campos fixos.\n");
         ApagarRegistro(&reg);
         return NULL;
     }
-    
+
     // Calcular tamanho dos campos variáveis
     int tamRestante = reg->tamanhoRegistro - 20; // 20 bytes dos campos fixos
     
     // Ler campos variáveis se existirem
     if (tamRestante > 0 && !_LerCamposVariaveis(arquivo, tamRestante, reg)) {
+        printf("Erro ao ler os campos variáveis.\n");
         ApagarRegistro(&reg);
         return NULL;
     }
@@ -395,6 +403,7 @@ REGISTRO *LerRegistro(FILE *arquivo) {
 
 void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
     if (arquivo == NULL || reg == NULL) {
+        printf("Registro ou arquivo nulos na remoção do registro.\n");
         DispararErro(ErroPonteiroInvalido());
         return;
     }
@@ -403,8 +412,11 @@ void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
 
     // Busca, guarda e atualiza o topo da lista
     long int topo;
+    // Guardar topo antigo
     fseek(arquivo, TOPO, SEEK_SET);
     fread(&topo, sizeof(long int), 1, arquivo);
+    // Escrever novo topo
+    fseek(arquivo, TOPO, SEEK_SET);
     fwrite(&byteAtual, sizeof(long int), 1, arquivo);
 
     // Volta ponteiro do arquivo para início do registro
