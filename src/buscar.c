@@ -30,6 +30,7 @@ void ExibirRegistrosDadoCriterio(FILE *arquivo, REGISTRO *reg) {
     
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *registroBuscado = NULL;
+        
     while((registroBuscado = SELECT_WHERE(arquivo, reg)) != NULL){
         ExibirRegistro(registroBuscado);
         ApagarRegistro(&registroBuscado);

@@ -57,5 +57,6 @@
     REGISTRO *LerRegistro(FILE *arquivo);
     void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
     bool SelecionarPorCriterio(REGISTRO* filtro, REGISTRO* reg);
+    REGISTRO *DefinirCriterio();
 
 #endif
