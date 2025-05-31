@@ -55,6 +55,7 @@
     void PreencherRegistro(REGISTRO **reg, char *buffer);
     void EscreverRegistro(FILE **arquivo, REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
-    void RemoverRegistro(FILE *arquivo, REGISTRO *reg);
+    void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
+    bool SelecionarPorCriterio(REGISTRO* filtro, REGISTRO* reg);
 
 #endif

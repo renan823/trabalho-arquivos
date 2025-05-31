@@ -3,12 +3,15 @@
 #include "registro.h"
 #include "utils.h"
 #include "buscar.h"
+#include "create_table.h"
+#include "delete.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /* 
+CREATE_TABLE:
 Função que le registros em um CSV e armazena em um arquivo binário
 */
 void FUNCIONALIDADE1(void){
@@ -66,8 +69,8 @@ void FUNCIONALIDADE2(void) {
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
-        // Imprimir todos os registros.
-        Buscar(arquivoEntrada);
+        // Imprimir todos os registros(não há critério).
+        ExibirRegistrosDadoCriterio(arquivoEntrada, NULL);
         // Fechar arquivo
         fclose(arquivoEntrada);
         arquivoEntrada = NULL;
@@ -132,7 +135,10 @@ void FUNCIONALIDADE3(void){
                 campo = NULL;
             }
 
-            BuscarComFiltro(arquivoEntrada, reg);
+            ExibirRegistrosDadoCriterio(arquivoEntrada, reg);
+
+            printf("**********\n");
+
             // Apagar registro filtro
             ApagarRegistro(&reg);
         }
@@ -194,14 +200,14 @@ void FUNCIONALIDADE4(void){
                 } else if(!strcmp(campo, "defenseMechanism")) {
                     reg->defenseMechanism = LerStringComAspas();
                 } else {
-                    // TODO: erro select invalido
+                    printf("Erro select inválido\n");
                 }
 
                 free(campo);
                 campo = NULL;
             }
 
-            RemoverRegistrosComFiltro(arquivoEntrada, reg);
+            DELETE(arquivoEntrada, reg);
             // Apagar registro filtro
             ApagarRegistro(&reg);
         }

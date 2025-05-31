@@ -5,9 +5,7 @@
 
     #include <stdio.h>
 
-    void BuscarComFiltro(FILE *arquivo, REGISTRO *reg);
-    void Buscar(FILE *arquivo);
+    void ExibirRegistrosDadoCriterio(FILE *arquivo, REGISTRO *reg);
+    REGISTRO *SELECT_WHERE(FILE *arquivo, REGISTRO *filtro);
 
-    void RemoverRegistrosComFiltro(FILE *arquivo, REGISTRO *reg);
-    void InserirRegistro(FILE *arquivo, REGISTRO *reg);
 #endif

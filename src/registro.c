@@ -10,32 +10,15 @@
 
 // Função que ajusta lixo dos campos variaveis.
 void _ajustarLixo(char *campoVariavel){
-    for(int i = 0; campoVariavel[i] != '\0'; i++){
-        campoVariavel[i] = '$';
-    }
-}
-
-// Função para preencher campos string de tamanho variavel
-void _PreencherCampoVariavel(char **campo, char **linha, int *tamVariaveis) {
-    if(**linha != ',' && **linha != '\0') {
-        int tamString = strlen(*linha);
-        char *string = malloc(sizeof(char) * (tamString + 1));
-        
-        if (string != NULL) {
-            strcpy(string, *linha);
-            string[tamString] = '\0';
-            *campo = string;
-            
-            *tamVariaveis += tamString + 2;
-            *linha += tamString;
-        }
-    }
-
-    *linha += 1;
+    for(int i = 0; campoVariavel[i] != '\0'; i++) campoVariavel[i] = '$';
 }
 
 // Função para ler campos fixos do registro
 int _LerCamposFixos(FILE *arquivo, REGISTRO *reg) {
+    if ((fread(&(reg->removido), sizeof(char), 1, arquivo)) != 1) {
+        return 0;
+    } 
+   
     if ((fread(&(reg->tamanhoRegistro), sizeof(int), 1, arquivo)) != 1) {
         return 0;
     } 
@@ -90,7 +73,7 @@ int _ProcessarCampoVariavel(char codigo, char *valor, REGISTRO *reg) {
             reg->defenseMechanism = _CopiarCampoString(valor);
             return reg->defenseMechanism != NULL;
         default:
-            // Código inválido
+            printf("Erro ao processar campo variável.\n");
             return 0;
     }
 }
@@ -98,7 +81,11 @@ int _ProcessarCampoVariavel(char codigo, char *valor, REGISTRO *reg) {
 // Função para ler e processar campos variáveis
 int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
     char *buffer = (char*) malloc((tamanhoRestante + 1)*sizeof(char));
-    if (!buffer) return 0;
+    if (!buffer) {
+        printf("Erro ao alocar buffer para ler campo variável.\n");
+        DispararErro(ErroAlocacaoMemoria());
+        return 0;
+    }
     
     buffer[tamanhoRestante] = '\0';
     if (fread(buffer, sizeof(char), tamanhoRestante, arquivo) != tamanhoRestante) {
@@ -138,9 +125,7 @@ Dispara erro em caso de ponteiro NULL
 REGISTRO *CriarRegistroVazio(void) {
     REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
 
-    if (reg == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    } 
+    if (reg == NULL) DispararErro(ErroAlocacaoMemoria());
 
     reg->removido = '0';
     // Tamanho fixo do registro
@@ -159,84 +144,18 @@ REGISTRO *CriarRegistroVazio(void) {
     return reg;
 }
 
-
-// Função que dado uma linha csv, preenche registro
-void PreencherRegistro(REGISTRO **reg, char *buffer){
-    if (*reg == NULL || buffer == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    /*
-    Manejo strok() - tirado site da IBM
-    conteudo = strtok(linha do csv, delimitador).
-    OBS: a cada chamada substitui o delimitador por um caracter nulo.
-    Exemplo de execução de 3 strtoks:
-    buffer("juan,20,santos") -> buffer("juan\020\0santos\0")
-    Para chamadas em que a linha é nula,
-    continua da onde parou no argumento não nulo mais recente.
-    OBS: se o conteúdo é nulo(",,"), ele pula para o próximo.
-    Caso não ache o delimitador(exemplo no final), outro caracter 
-    de parada é o '\0'.
-    OBS: ele ignora conteudo vazios e busca conteudos.
-    */
-    // Sumir com os delimitadores
-    strtok(buffer, ",");
-    while(strtok(NULL, ","));
-
-    // Var. aux que ajuda a verificar campo vazio no buffer
-    char *linha = buffer;
-    
-    // Campo 1: id do ataque(int)
-    if(*linha != ','){
-        // Armazenar id como inteiro
-        (*reg)->idAttack = atoi(linha);
-        // Andar tamanho do conteúdo
-        linha += strlen(linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 2: year(int)
-    if(*linha != ','){
-        (*reg)->year = atoi(linha);
-        // Andar tamanho do conteúdo como string
-        linha += strlen(linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Campo 3: financialLoss(float)
-    if(*linha != ','){
-        // Converte string para float e atualiza linha(linha += strlen(linha))
-        (*reg)->financialLoss = strtof(linha, &linha);
-    }
-    // Pula '\0' ou ','
-    linha += 1;
-
-    // Armazenar tamanho dos campos variaveis
-    int tamCamposVariaveis = 0;
-
-    // Preencher campos variáveis
-    _PreencherCampoVariavel(&(*reg)->country, &linha, &tamCamposVariaveis);
-    _PreencherCampoVariavel(&(*reg)->attackType, &linha, &tamCamposVariaveis);
-    _PreencherCampoVariavel(&(*reg)->targetIndustry, &linha, &tamCamposVariaveis);
-    _PreencherCampoVariavel(&(*reg)->defenseMechanism, &linha, &tamCamposVariaveis);
-
-    // Somar o tamanho dos campos das variáveis
-    (*reg)->tamanhoRegistro += tamCamposVariaveis;
-
-    return;
-}
-
 /* 
 Função que escreve um registro em um arquivo binário
 */
-void EscreverRegistro(FILE **arquivo, REGISTRO *reg){
+void EscreverRegistro(FILE **arquivo, REGISTRO *reg) {
     if (*arquivo == NULL) DispararErro(ErroArquivoInvalido());
     if (reg == NULL) {
         printf("Passado registro nulo para ser escrito.\n");
         DispararErro(ErroPonteiroInvalido());
     }
+
+    // Tamanho dos campos fixos (calculado dinamicamente)
+    int tamanhoCamposFixos = sizeof(long int) + sizeof(int) + sizeof(int) + sizeof(float);
 
     // Escrever campos fixos
     fwrite(&(reg->removido), sizeof(char), 1, *arquivo);
@@ -247,37 +166,44 @@ void EscreverRegistro(FILE **arquivo, REGISTRO *reg){
     fwrite(&(reg->financialLoss), sizeof(float), 1, *arquivo);
 
     char sep = SEPARADOR;
+    int tamRestante = reg->tamanhoRegistro - tamanhoCamposFixos;
 
     // Escrever campos variáveis se existirem
-    if(reg->country){
-        // Campo: codDescreveCountry + country + "|"  
+    if (reg->country && reg->country[0] != '$') {
         fwrite("1", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->country) + 2; 
         fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if(reg->attackType){
-        // Campo: codDescreveAttackType + attackType + "|"  
+    if (reg->attackType && reg->attackType[0] != '$') {
         fwrite("2", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->attackType) + 2;
         fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if(reg->targetIndustry){
-        // Campo: codDescreveTargetIndustry + targetIndustry + "|"  
+    if (reg->targetIndustry && reg->targetIndustry[0] != '$') {
         fwrite("3", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->targetIndustry) + 2;
         fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if(reg->defenseMechanism){
-        // Campo: codDescreveDefenseMechanism + defenseMechanism + "|"  
+    if (reg->defenseMechanism && reg->defenseMechanism[0] != '$') {
         fwrite("4", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->defenseMechanism) + 2;
         fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    return;
+    // Preencher o restante com '$'
+    if (tamRestante > 0) {
+        char lixo = '$';
+        for (int i = 0; i < tamRestante; i++) {
+            fwrite(&lixo, sizeof(char), 1, *arquivo);
+        }
+    }
 }
 
 /*
@@ -383,7 +309,9 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     
     // Ler campos fixos
     if (!_LerCamposFixos(arquivo, reg)) {
-        printf("Erro ao ler campos fixos.\n");
+        // Falha nesse processo pode indicar que
+        // chegou-se ao fim do arquivo, logo é esperado
+        // caso de falha, assim, deve-se continuar execução.
         ApagarRegistro(&reg);
         return NULL;
     }
@@ -393,6 +321,8 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     
     // Ler campos variáveis se existirem
     if (tamRestante > 0 && !_LerCamposVariaveis(arquivo, tamRestante, reg)) {
+        // Se existe campo fixo, o registro existe, logo não é esperado
+        // continuar o programa desse ponto se os campos variáveis não foram lidos.
         printf("Erro ao ler os campos variáveis.\n");
         ApagarRegistro(&reg);
         return NULL;
@@ -401,40 +331,73 @@ REGISTRO *LerRegistro(FILE *arquivo) {
     return reg;
 }
 
-void RemoverRegistro(FILE *arquivo, REGISTRO *reg) {
+void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg) {
     if (arquivo == NULL || reg == NULL) {
         printf("Registro ou arquivo nulos na remoção do registro.\n");
         DispararErro(ErroPonteiroInvalido());
         return;
     }
-    // Guarda início do registro.
-    long int byteAtual = (ftell(arquivo) - 1);
-
-    // Busca, guarda e atualiza o topo da lista
-    long int topo;
-    // Guardar topo antigo
-    fseek(arquivo, TOPO, SEEK_SET);
-    fread(&topo, sizeof(long int), 1, arquivo);
-    // Escrever novo topo
-    fseek(arquivo, TOPO, SEEK_SET);
-    fwrite(&byteAtual, sizeof(long int), 1, arquivo);
-
-    // Volta ponteiro do arquivo para início do registro
-    fseek(arquivo, byteAtual, SEEK_SET);
 
     // Salvar dados a serem mantidos no registrador
     // e faz o ajuste do lixo decorrente dos dados antigos.
     reg->removido = '1';
-    reg->prox = topo;
-    reg->idAttack = -1;
-    reg->year = -1;
-    reg->financialLoss = -1;
-    // Simboliza lixo do campo variável com '$'
-    if (reg->country) _ajustarLixo(reg->country);
-    if (reg->attackType) _ajustarLixo(reg->attackType);  
-    if (reg->targetIndustry) _ajustarLixo(reg->targetIndustry); 
-    if (reg->defenseMechanism) _ajustarLixo(reg->defenseMechanism);
+    reg->prox = c->topo;
+    c->topo = ftell(arquivo);
 
     EscreverRegistro(&arquivo, reg);
     return;
+}
+
+bool SelecionarPorCriterio(REGISTRO* criterio, REGISTRO* reg) {
+    if(reg->removido == REMOVIDO || reg == NULL) return false;
+    // Se não há critério e registro não removido e não nulo
+    // o registro é valido.
+    if(criterio == NULL) return true;
+
+    /* Um registro é valido, se ele tem os criterios passados*/
+    // Verifica idAttack
+    if (criterio->idAttack != -1 && 
+        criterio->idAttack != reg->idAttack) {
+        return false;
+    }
+    
+    // Verifica year
+    if (criterio->year != -1 && 
+        criterio->year != reg->year) {
+        return false;
+    }
+    
+    // Verifica financialLoss
+    if (criterio->financialLoss != -1 && 
+        criterio->financialLoss != reg->financialLoss) {
+        return false;
+    }
+    
+    // Verifica strings (country, attackType, etc.)
+    if (criterio->country != NULL && 
+        (reg->country == NULL || 
+            strcmp(criterio->country, reg->country) != 0)) {
+        return false;
+    }
+    
+    if (criterio->attackType != NULL && 
+        (reg->attackType == NULL || 
+            strcmp(criterio->attackType, reg->attackType) != 0)) {
+        return false;
+    }
+    
+    if (criterio->targetIndustry != NULL && 
+        (reg->targetIndustry == NULL || 
+            strcmp(criterio->targetIndustry, reg->targetIndustry) != 0)) {
+        return false;
+    }
+    
+    if (criterio->defenseMechanism != NULL && 
+        (reg->defenseMechanism == NULL || 
+            strcmp(criterio->defenseMechanism, reg->defenseMechanism) != 0)) {
+        return false;
+    }
+    
+    // Se todas as verificações passaram
+    return true;
 }
