@@ -170,6 +170,48 @@ void FUNCIONALIDADE4(void){
     return;
 }
 
+void FUNCIONALIDADE6(void){
+    // Ler nome do arquivo de entrada.
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivo de entrada para leitura e escrita
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
+
+    // Quantidades de remoções a serem realizadas
+    int quantUpdate;
+    scanf("%d\n", &quantUpdate);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantUpdate--){
+            // Le os criterios a serem avaliados
+            REGISTRO *criterio = DefinirCriterio();
+            REGISTRO *valoresAtualizados = DefinirCriterio();
+
+            UPDATE(arquivoEntrada, criterio, valoresAtualizados);
+           
+            // Apagar registro criterio
+            ApagarRegistro(&criterio);
+        }
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoEntrada);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+
+    return;
+}
+
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
     int funcionalidade;
@@ -189,6 +231,9 @@ int main(void) {
             FUNCIONALIDADE4();
             break;
         case 5:
+            break;
+        case 6:
+            FUNCIONALIDADE6();
             break;
         default:
             break;

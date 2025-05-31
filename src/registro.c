@@ -438,3 +438,73 @@ REGISTRO *DefinirCriterio(){
     }
     return reg;
 }
+
+void AtualizarRegistro(REGISTRO *destino,REGISTRO *origem){
+    if(destino == NULL) DispararErro(ErroPonteiroInvalido());
+
+    if(origem == NULL) return;
+
+    /* Atualizar campos que foram inicializados */
+    if (origem->idAttack != -1) destino->idAttack = origem->idAttack;
+    if (origem->year != -1) destino->year = origem->year;
+    if (origem->financialLoss != -1) destino->financialLoss = origem->financialLoss;
+    
+    /* Atualizar Campos das Strings */
+    if (origem->country != NULL) {
+        // Remover campo variável
+        destino->tamanhoRegistro -= strlen(destino->country);
+        free(destino->country);
+        // Alocar memória para novo valor.
+        int tamCampoVariavel = strlen(origem->country);
+        char *campoAtualizado = (char*) malloc((tamCampoVariavel + 1)*sizeof(char));
+        destino->tamanhoRegistro += tamCampoVariavel;
+        // Preencher campo, e atualizar ponteiro.
+        strcpy(campoAtualizado, origem->country);
+        campoAtualizado[tamCampoVariavel] = '\0';
+        destino->country = campoAtualizado;
+    }
+
+    if (origem->attackType != NULL) {
+        // Remover campo variável
+        destino->tamanhoRegistro -= strlen(destino->attackType);
+        free(destino->attackType);
+        // Alocar memória para novo valor.
+        int tamCampoVariavel = strlen(origem->attackType);
+        char *campoAtualizado = (char*) malloc((tamCampoVariavel + 1)*sizeof(char));
+        destino->tamanhoRegistro += tamCampoVariavel;
+        // Preencher campo, e atualizar ponteiro.
+        strcpy(campoAtualizado, origem->attackType);
+        campoAtualizado[tamCampoVariavel] = '\0';
+        destino->attackType = campoAtualizado;
+    }
+
+    if (origem->defenseMechanism != NULL) {
+        // Remover campo variável
+        destino->tamanhoRegistro -= strlen(destino->defenseMechanism);
+        free(destino->defenseMechanism);
+        // Alocar memória para novo valor.
+        int tamCampoVariavel = strlen(origem->defenseMechanism);
+        char *campoAtualizado = (char*) malloc((tamCampoVariavel + 1)*sizeof(char));
+        destino->tamanhoRegistro += tamCampoVariavel;
+        // Preencher campo, e atualizar ponteiro.
+        strcpy(campoAtualizado, origem->defenseMechanism);
+        campoAtualizado[tamCampoVariavel] = '\0';
+        destino->defenseMechanism = campoAtualizado;
+    }
+
+    if (origem->targetIndustry != NULL) {
+        // Remover campo variável
+        destino->tamanhoRegistro -= strlen(destino->targetIndustry);
+        free(destino->targetIndustry);
+        // Alocar memória para novo valor.
+        int tamCampoVariavel = strlen(origem->targetIndustry);
+        char *campoAtualizado = (char*) malloc((tamCampoVariavel + 1)*sizeof(char));
+        destino->tamanhoRegistro += tamCampoVariavel;
+        // Preencher campo, e atualizar ponteiro.
+        strcpy(campoAtualizado, origem->targetIndustry);
+        campoAtualizado[tamCampoVariavel] = '\0';
+        destino->targetIndustry = campoAtualizado;
+    }
+    
+    return;
+}
