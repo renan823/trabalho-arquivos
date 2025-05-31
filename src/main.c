@@ -56,6 +56,7 @@ void FUNCIONALIDADE1(void){
 }
 
 /*
+SELECT:
 Exibe os registros no arquivo de dados informado
 */
 void FUNCIONALIDADE2(void) {
@@ -84,6 +85,7 @@ void FUNCIONALIDADE2(void) {
 }
 
 /*
+SELECT_WHERE:
 Busca registros de acordo com um filtro
 */
 void FUNCIONALIDADE3(void){
@@ -103,45 +105,15 @@ void FUNCIONALIDADE3(void){
         DispararErro(ErroProcessamentoArquivo());
     } else {
         while(quantBuscas--){
-            // Quantidade de campos em cada busca(filtros).
-            int quantCampos;
-            scanf("%d", &quantCampos);
+            // Le os criterios a serem avaliados
+            REGISTRO *criterio = DefinirCriterio();
 
-            // Registro a ser usado como filtro
-            REGISTRO *reg = CriarRegistroVazio();
-
-            // Ler campos inseridos pelo usuário
-            for(int i = 0; i < quantCampos; i++){
-                char *campo = LerString();
-                // Switch case do campo
-                if(!strcmp(campo, "idAttack")){
-                    scanf(" %d", &(reg->idAttack));
-                } else if(!strcmp(campo, "year")) {
-                    scanf(" %d", &(reg->year));
-                } else if(!strcmp(campo, "financialLoss")) {
-                    scanf(" %f", &(reg->financialLoss));
-                } else if(!strcmp(campo, "country")) {
-                    reg->country = LerStringComAspas();
-                } else if(!strcmp(campo, "attackType")) {
-                    reg->attackType = LerStringComAspas();
-                } else if(!strcmp(campo, "targetIndustry")) {
-                    reg->targetIndustry = LerStringComAspas();
-                } else if(!strcmp(campo, "defenseMechanism")) {
-                    reg->defenseMechanism = LerStringComAspas();
-                } else {
-                    // TODO: erro select invalido
-                }
-
-                free(campo);
-                campo = NULL;
-            }
-
-            ExibirRegistrosDadoCriterio(arquivoEntrada, reg);
+            ExibirRegistrosDadoCriterio(arquivoEntrada, criterio);
 
             printf("**********\n");
 
             // Apagar registro filtro
-            ApagarRegistro(&reg);
+            ApagarRegistro(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -156,6 +128,7 @@ void FUNCIONALIDADE3(void){
 }
 
 /*
+DELETE:
 Remove registros logicamente de acordo com filtro
 */
 void FUNCIONALIDADE4(void){
@@ -175,42 +148,12 @@ void FUNCIONALIDADE4(void){
         DispararErro(ErroProcessamentoArquivo());
     } else {
         while(quantRemove--){
-            // Quantidade de campos em cada busca(filtros).
-            int quantCampos;
-            scanf("%d", &quantCampos);
+            // Le os criterios a serem avaliados
+            REGISTRO *criterio = DefinirCriterio();
 
-            // Registro a ser usado como filtro
-            REGISTRO *reg = CriarRegistroVazio();
-
-            // Ler campos inseridos pelo usuário
-            for(int i = 0; i < quantCampos; i++){
-                char *campo = LerString();
-                // Switch case do campo
-                if(!strcmp(campo, "idAttack")){
-                    scanf(" %d", &(reg->idAttack));
-                } else if(!strcmp(campo, "year")) {
-                    scanf(" %d", &(reg->year));
-                } else if(!strcmp(campo, "financialLoss")) {
-                    scanf(" %f", &(reg->financialLoss));
-                } else if(!strcmp(campo, "country")) {
-                    reg->country = LerStringComAspas();
-                } else if(!strcmp(campo, "attackType")) {
-                    reg->attackType = LerStringComAspas();
-                } else if(!strcmp(campo, "targetIndustry")) {
-                    reg->targetIndustry = LerStringComAspas();
-                } else if(!strcmp(campo, "defenseMechanism")) {
-                    reg->defenseMechanism = LerStringComAspas();
-                } else {
-                    printf("Erro select inválido\n");
-                }
-
-                free(campo);
-                campo = NULL;
-            }
-
-            DELETE(arquivoEntrada, reg);
-            // Apagar registro filtro
-            ApagarRegistro(&reg);
+            DELETE(arquivoEntrada, criterio);
+            // Apagar registro criterio
+            ApagarRegistro(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -310,6 +253,9 @@ void FUNCIONALIDADE5(void){
             INSERT(arquivoEntrada, reg);
            
             ApagarRegistro(&reg);
+            DELETE(arquivoEntrada, criterio);
+            // Apagar registro criterio
+            ApagarRegistro(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -346,7 +292,6 @@ int main(void) {
             FUNCIONALIDADE4();
             break;
         case 5:
-            FUNCIONALIDADE5();
             break;
         default:
             break;

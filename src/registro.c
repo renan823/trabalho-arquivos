@@ -1,6 +1,7 @@
 #include "registro.h"
 #include "erros.h"
 #include "cabecalho.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -400,4 +401,40 @@ bool SelecionarPorCriterio(REGISTRO* criterio, REGISTRO* reg) {
     
     // Se todas as verificações passaram
     return true;
+}
+
+REGISTRO *DefinirCriterio(){
+    // Quantidade de campos em cada busca(filtros).
+    int quantCampos;
+    scanf("%d", &quantCampos);
+
+    // Registro a ser usado como filtro
+    REGISTRO *reg = CriarRegistroVazio();
+
+    // Ler campos inseridos pelo usuário
+    for(int i = 0; i < quantCampos; i++){
+        char *campo = LerString();
+        // Switch case do campo
+        if(!strcmp(campo, "idAttack")){
+            scanf(" %d", &(reg->idAttack));
+        } else if(!strcmp(campo, "year")) {
+            scanf(" %d", &(reg->year));
+        } else if(!strcmp(campo, "financialLoss")) {
+            scanf(" %f", &(reg->financialLoss));
+        } else if(!strcmp(campo, "country")) {
+            reg->country = LerStringComAspas();
+        } else if(!strcmp(campo, "attackType")) {
+            reg->attackType = LerStringComAspas();
+        } else if(!strcmp(campo, "targetIndustry")) {
+            reg->targetIndustry = LerStringComAspas();
+        } else if(!strcmp(campo, "defenseMechanism")) {
+            reg->defenseMechanism = LerStringComAspas();
+        } else {
+            // TODO: erro select invalido
+        }
+
+        free(campo);
+        campo = NULL;
+    }
+    return reg;
 }
