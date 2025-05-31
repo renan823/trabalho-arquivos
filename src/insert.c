@@ -4,7 +4,10 @@
 #include "erros.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 
+/*
+*/
 void INSERT(FILE *arquivo, REGISTRO *reg) {
     // Se arquivo nulo, encerra execução.
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
@@ -16,14 +19,56 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
         return;
     }
 
-    // Estrategia first fit
-    // Lixo -> $
-
     // Caso 1 - nenhum registro removido ou sem fit -> inserir fim
     // Caso 2 - fit bem sucedido -> inserir no espaço e atualizar lista
+    long atual = c->topo;
+    long proxRegAnterior = 1;
+    bool fit = false;
 
-    if (c->topo == -1)
+    // Percorrer lista de offsets usando seek
+    for (int i = 0; i < c->nroRegRem; i++) {
+        fseek(arquivo, atual, SEEK_SET);
 
+        REGISTRO *removido = LerRegistro(arquivo);
 
-    ExibirRegistro(reg);
+        int disponivel = removido->tamanhoRegistro;
+        long prox = removido->prox;
+
+        ApagarRegistro(&removido);
+
+        if (disponivel >= reg->tamanhoRegistro) {
+            // First fit - usar espaço e adicionar $ no lixo
+
+            // Atualizar prox offset do registro proxRegAnterior
+            // Já cobre o caso do aterior ser o topo.
+            fseek(arquivo, proxRegAnterior, SEEK_SET);
+            fwrite(&prox, sizeof(long int), 1, arquivo);
+
+            // Retorna para o começo do reg atual 
+            fseek(arquivo, atual, SEEK_SET);
+
+            // Escreve e preenche espaço vago
+            EscreverRegistro(&arquivo, reg);
+            
+            fit = true;
+            break;
+        }
+
+        proxRegAnterior = atual + 5; // Byte offset id + tam
+        atual = prox;
+    }
+
+    // Caso não faça first fit, inserir no final;
+    if (!fit) {
+        fseek(arquivo, 0, SEEK_END);
+        EscreverRegistro(&arquivo, reg);
+    }
+
+    // Ajustar cabeçalho
+    c->nroRegArq++;
+    c->nroRegRem--;
+    c->proxByteOffset = ftell(arquivo);
+
+    EscreverCabecalho(&arquivo, c);
+    ApagarCabecalho(&c);
 }

@@ -251,11 +251,7 @@ void FUNCIONALIDADE5(void){
             }
 
             INSERT(arquivoEntrada, reg);
-           
             ApagarRegistro(&reg);
-            DELETE(arquivoEntrada, criterio);
-            // Apagar registro criterio
-            ApagarRegistro(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -292,6 +288,7 @@ int main(void) {
             FUNCIONALIDADE4();
             break;
         case 5:
+        FUNCIONALIDADE5();
             break;
         default:
             break;

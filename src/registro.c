@@ -8,10 +8,11 @@
 #include <stdio.h>
 
 #define MSG_VAZIO "NADA CONSTA"
+#define LIXO '$'
 
 // Função que ajusta lixo dos campos variaveis.
 void _ajustarLixo(char *campoVariavel){
-    for(int i = 0; campoVariavel[i] != '\0'; i++) campoVariavel[i] = '$';
+    for(int i = 0; campoVariavel[i] != '\0'; i++) campoVariavel[i] = LIXO;
 }
 
 // Função para ler campos fixos do registro
@@ -47,7 +48,7 @@ int _LerCamposFixos(FILE *arquivo, REGISTRO *reg) {
 char *_CopiarCampoString(const char *origem) {
     int tam = 0;
     // Tomar cuidado para não tratar lixo como parte da string.
-    while(origem[tam] != '$' && origem[tam] != '\0') tam++;
+    while(origem[tam] != LIXO && origem[tam] != '\0') tam++;
     char *destino = (char*) malloc(sizeof(char) * (tam + 1));
 
     if (destino != NULL) {
@@ -104,7 +105,7 @@ int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
         }
         
         char codigo = token[0];
-        if(codigo == '$') break;
+        if(codigo == LIXO) break;
         char *valor = token + 1; // Pula o código
         
         if (!_ProcessarCampoVariavel(codigo, valor, reg)) {
@@ -170,28 +171,28 @@ void EscreverRegistro(FILE **arquivo, REGISTRO *reg) {
     int tamRestante = reg->tamanhoRegistro - tamanhoCamposFixos;
 
     // Escrever campos variáveis se existirem
-    if (reg->country && reg->country[0] != '$') {
+    if (reg->country && reg->country[0] != LIXO) {
         fwrite("1", sizeof(char), 1, *arquivo);
         tamRestante -= strlen(reg->country) + 2; 
         fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if (reg->attackType && reg->attackType[0] != '$') {
+    if (reg->attackType && reg->attackType[0] != LIXO) {
         fwrite("2", sizeof(char), 1, *arquivo);
         tamRestante -= strlen(reg->attackType) + 2;
         fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if (reg->targetIndustry && reg->targetIndustry[0] != '$') {
+    if (reg->targetIndustry && reg->targetIndustry[0] != LIXO) {
         fwrite("3", sizeof(char), 1, *arquivo);
         tamRestante -= strlen(reg->targetIndustry) + 2;
         fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
         fwrite(&sep, sizeof(char), 1, *arquivo);
     }
 
-    if (reg->defenseMechanism && reg->defenseMechanism[0] != '$') {
+    if (reg->defenseMechanism && reg->defenseMechanism[0] != LIXO) {
         fwrite("4", sizeof(char), 1, *arquivo);
         tamRestante -= strlen(reg->defenseMechanism) + 2;
         fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
@@ -200,7 +201,7 @@ void EscreverRegistro(FILE **arquivo, REGISTRO *reg) {
 
     // Preencher o restante com '$'
     if (tamRestante > 0) {
-        char lixo = '$';
+        char lixo = LIXO;
         for (int i = 0; i < tamRestante; i++) {
             fwrite(&lixo, sizeof(char), 1, *arquivo);
         }
