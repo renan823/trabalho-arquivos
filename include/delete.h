@@ -6,5 +6,4 @@
     #include <stdio.h>
 
     void DELETE(FILE *arquivo, REGISTRO *reg);
-    void InserirRegistro(FILE *arquivo, REGISTRO *reg);
 #endif

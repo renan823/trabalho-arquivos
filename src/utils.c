@@ -24,20 +24,20 @@ char *LerString(void){
 
 char *LerStringComAspas(void){
 	char buffer[256];
-  char *stringDinamica;
+	char *stringDinamica;
 
 	scan_quote_string(buffer);
 
 	// Retorna tamanho da string sem o \0
-  int tamString = strlen(buffer);
+	int tamString = strlen(buffer);
 
-  // Alocar espaço na heap para a tamString + \0
-  stringDinamica = (char*) malloc(sizeof(char)*(tamString + 1));
-  strcpy(stringDinamica, buffer);
-  // Garante \0 no final da string
-  stringDinamica[tamString] = '\0';
+	// Alocar espaço na heap para a tamString + \0
+	stringDinamica = (char*) malloc(sizeof(char)*(tamString + 1));
+	strcpy(stringDinamica, buffer);
+	// Garante \0 no final da string
+	stringDinamica[tamString] = '\0';
 
-  return stringDinamica;
+	return stringDinamica;
 
 }
 

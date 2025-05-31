@@ -5,6 +5,7 @@
 #include "buscar.h"
 #include "create_table.h"
 #include "delete.h"
+#include "insert.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -249,10 +250,65 @@ void FUNCIONALIDADE5(void){
         while(quantInsert--){
             // Ler entrada da inserção.
             REGISTRO *reg = CriarRegistroVazio();
-            
-            // TO-DO: Ler entrada.
-            // InserirRegistro(arquivoEntrada, reg);
 
+            char *campo = NULL;
+
+            // Ler idAttack, year, financialLoss, country, attackType, taregtIndustry, defenseMechanism
+            scanf("%d", &reg->idAttack);
+
+            // Year
+            campo = LerString();
+            if (strcmp(campo, "NULO") != 0) {
+                reg->year = atoi(campo);
+            } else {
+                reg->year = -1;
+            }
+            free(campo);
+
+            // FinancialLoss
+            campo = LerString();
+            char *ptr = campo;
+            if (strcmp(campo, "NULO") != 0) {
+                reg->financialLoss = strtof(campo, &campo);
+            } else {
+                reg->financialLoss = -1;
+            }
+            free(ptr);
+
+            // Country
+            campo = LerStringComAspas();
+            if (strcmp(campo, "") != 0) {
+                reg->country = campo;
+            } else {
+                reg->country = NULL;
+            }
+
+            // Attack Type
+            campo = LerStringComAspas();
+            if (strcmp(campo, "") != 0) {
+                reg->attackType = campo;
+            } else {
+                reg->attackType = NULL;
+            }
+
+            // Target Industry
+            campo = LerStringComAspas();
+            if (strcmp(campo, "") != 0) {
+                reg->targetIndustry = campo;
+            } else {
+                reg->targetIndustry = NULL;
+            }
+
+            // Defense Mechanism
+            campo = LerStringComAspas();
+            if (strcmp(campo, "") != 0) {
+                reg->defenseMechanism = campo;
+            } else {
+                reg->defenseMechanism = NULL;
+            }
+
+            INSERT(arquivoEntrada, reg);
+           
             ApagarRegistro(&reg);
         }
         // Fechar arquivo
