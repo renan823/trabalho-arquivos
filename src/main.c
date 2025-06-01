@@ -194,61 +194,19 @@ void FUNCIONALIDADE5(void){
             // Ler entrada da inserção.
             REGISTRO *reg = CriarRegistroVazio();
 
-            char *campo = NULL;
-
-            // Ler idAttack, year, financialLoss, country, attackType, taregtIndustry, defenseMechanism
+            // Campos fixos - idAttack NÃO pode ser "NULO"
             scanf("%d", &reg->idAttack);
+            reg->year = LerCampoInteiro();
+            reg->financialLoss = LerCampoFloat();
 
-            // Year
-            campo = LerString();
-            if (strcmp(campo, "NULO") != 0) {
-                reg->year = atoi(campo);
-            } else {
-                reg->year = -1;
-            }
-            free(campo);
+            // Campos variáveis
+            reg->country = LerCampoStringComAspas();
+            reg->attackType = LerCampoStringComAspas();
+            reg->targetIndustry = LerCampoStringComAspas();
+            reg->defenseMechanism = LerCampoStringComAspas();
 
-            // FinancialLoss
-            campo = LerString();
-            char *ptr = campo;
-            if (strcmp(campo, "NULO") != 0) {
-                reg->financialLoss = strtof(campo, &campo);
-            } else {
-                reg->financialLoss = -1;
-            }
-            free(ptr);
-
-            // Country
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->country = campo;
-            } else {
-                reg->country = NULL;
-            }
-
-            // Attack Type
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->attackType = campo;
-            } else {
-                reg->attackType = NULL;
-            }
-
-            // Target Industry
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->targetIndustry = campo;
-            } else {
-                reg->targetIndustry = NULL;
-            }
-
-            // Defense Mechanism
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->defenseMechanism = campo;
-            } else {
-                reg->defenseMechanism = NULL;
-            }
+            // Ajusta tamanho do registro com os campos variaveis
+            reg->tamanhoRegistro = TamanhoRegistro(reg);
 
             INSERT(arquivoEntrada, reg);
             ApagarRegistro(&reg);

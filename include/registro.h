@@ -58,5 +58,6 @@
     void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
     bool SelecionarPorCriterio(REGISTRO* filtro, REGISTRO* reg);
     REGISTRO *DefinirCriterio();
+    int TamanhoRegistro(REGISTRO *reg);
 
 #endif

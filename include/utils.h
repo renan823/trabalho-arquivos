@@ -24,4 +24,7 @@
     // Lê string com aspas
     char *LerStringComAspas(void);
 
+    int LerCampoInteiro();
+    float LerCampoFloat();
+    char* LerCampoStringComAspas();
 #endif

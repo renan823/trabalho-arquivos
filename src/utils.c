@@ -42,6 +42,50 @@ char *LerStringComAspas(void){
 }
 
 /*
+Lê da stdin uma string e coverte para int.
+Caso a string seja "NULO", retorna -1.
+*/
+int LerCampoInteiro() {
+    char *str = LerString();
+    int valor = (strcmp(str, "NULO") != 0) ? atoi(str) : -1;
+
+    free(str);
+    return valor;
+}
+
+/*
+Lê da stdin uma string e coverte para float.
+Caso a string seja "NULO", retorna -1.
+*/
+float LerCampoFloat() {
+    char *str = LerString();
+    float valor = -1;
+
+    if (strcmp(str, "NULO") != 0) {
+        char *endptr;
+        valor = strtof(str, &endptr);
+    }
+
+    free(str);
+    return valor;
+}
+
+/*
+Lê da stdin uma string com aspas e retorna seu valor (sem aspas).
+Caso a string seja "NULO", retorna NULL.
+*/
+char* LerCampoStringComAspas() {
+    char *str = LerStringComAspas();
+
+    if (str[0] == '\0') {
+        free(str);
+        return NULL;
+    }
+
+    return str;
+}
+
+/*
 Função para imprimir dados salvos no arquivo em binário
 (util para comparar saida no run codes)
 */

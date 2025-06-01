@@ -439,3 +439,19 @@ REGISTRO *DefinirCriterio(){
     }
     return reg;
 }
+
+/*
+Calcula o tamanho (em bytes) de um registro.
+Soma os tamanho dos campos fixos e dos variáveis.
+*/
+int TamanhoRegistro(REGISTRO *reg) {
+    int tamanhoCamposFixos = 20;
+
+    int tamanhoVariaveis = 8; // 4 * (tag + '|')
+    if (reg->country) tamanhoVariaveis += strlen(reg->country);
+    if (reg->attackType) tamanhoVariaveis += strlen(reg->attackType);
+    if (reg->targetIndustry) tamanhoVariaveis += strlen(reg->targetIndustry);
+    if (reg->defenseMechanism) tamanhoVariaveis += strlen(reg->defenseMechanism);
+
+    return tamanhoCamposFixos + tamanhoVariaveis;
+}
