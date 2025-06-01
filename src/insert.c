@@ -30,9 +30,9 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
         fseek(arquivo, atual, SEEK_SET);
 
         REGISTRO *removido = LerRegistro(arquivo);
-
+        
         int disponivel = removido->tamanhoRegistro;
-        long prox = removido->prox;
+        long prox = removido->prox; // Próximo registro removido.
 
         ApagarRegistro(&removido);
 
@@ -47,6 +47,7 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
             // Retorna para o começo do reg atual 
             fseek(arquivo, atual, SEEK_SET);
 
+            reg->tamanhoRegistro = disponivel;
             // Escreve e preenche espaço vago
             EscreverRegistro(&arquivo, reg);
             
@@ -62,13 +63,13 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
     if (!fit) {
         fseek(arquivo, 0, SEEK_END);
         EscreverRegistro(&arquivo, reg);
-    }
+        c->proxByteOffset = ftell(arquivo);
+    } else c->nroRegRem--;
 
     // Ajustar cabeçalho
     c->nroRegArq++;
-    c->nroRegRem--;
-    c->proxByteOffset = ftell(arquivo);
-
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
+
+    return;
 }

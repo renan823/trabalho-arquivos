@@ -201,22 +201,16 @@ void FUNCIONALIDADE5(void){
 
             // Year
             campo = LerString();
-            if (strcmp(campo, "NULO") != 0) {
-                reg->year = atoi(campo);
-            } else {
-                reg->year = -1;
-            }
+            if (strcmp(campo, "NULO") != 0) reg->year = atoi(campo);
+            else reg->year = -1;
             free(campo);
 
             // FinancialLoss
             campo = LerString();
-            char *ptr = campo;
-            if (strcmp(campo, "NULO") != 0) {
-                reg->financialLoss = strtof(campo, &campo);
-            } else {
-                reg->financialLoss = -1;
-            }
-            free(ptr);
+            if (strcmp(campo, "NULO") != 0) reg->financialLoss = strtof(campo, NULL);
+            else reg->financialLoss = -1;
+            
+            free(campo);
 
             // Country
             campo = LerStringComAspas();
@@ -224,6 +218,7 @@ void FUNCIONALIDADE5(void){
                 reg->country = campo;
             } else {
                 reg->country = NULL;
+                free(campo);
             }
 
             // Attack Type
@@ -232,6 +227,7 @@ void FUNCIONALIDADE5(void){
                 reg->attackType = campo;
             } else {
                 reg->attackType = NULL;
+                free(campo);
             }
 
             // Target Industry
@@ -240,6 +236,7 @@ void FUNCIONALIDADE5(void){
                 reg->targetIndustry = campo;
             } else {
                 reg->targetIndustry = NULL;
+                free(campo);
             }
 
             // Defense Mechanism
@@ -248,6 +245,7 @@ void FUNCIONALIDADE5(void){
                 reg->defenseMechanism = campo;
             } else {
                 reg->defenseMechanism = NULL;
+                free(campo);
             }
 
             INSERT(arquivoEntrada, reg);
