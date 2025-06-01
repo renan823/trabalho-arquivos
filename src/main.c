@@ -194,63 +194,27 @@ void FUNCIONALIDADE5(void){
             // Ler entrada da inserção.
             REGISTRO *reg = CriarRegistroVazio();
 
-            char *campo = NULL;
-
-            // Ler idAttack, year, financialLoss, country, attackType, taregtIndustry, defenseMechanism
+            // Ler campos fixos
             scanf("%d", &reg->idAttack);
+            reg->year = LerCampoInteiro();
+            reg->financialLoss = LerCampoFloat();
 
-            // Year
-            campo = LerString();
-            if (strcmp(campo, "NULO") != 0) reg->year = atoi(campo);
-            else reg->year = -1;
-            free(campo);
+            // Ler Campos variáveis
+            reg->country = LerCampoStringComAspas();
+            if(reg->country != NULL) 
+                reg->tamanhoRegistro = strlen(reg->country) + 2;
 
-            // FinancialLoss
-            campo = LerString();
-            if (strcmp(campo, "NULO") != 0) reg->financialLoss = strtof(campo, NULL);
-            else reg->financialLoss = -1;
-            
-            free(campo);
+            reg->attackType = LerCampoStringComAspas();
+            if(reg->attackType != NULL) 
+                reg->tamanhoRegistro = strlen(reg->attackType) + 2;
 
-            // Country
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->country = campo;
-                reg->tamanhoRegistro += strlen(campo) + 2;
-            } else {
-                reg->country = NULL;
-                free(campo);
-            }
+            reg->targetIndustry = LerCampoStringComAspas();
+            if(reg->targetIndustry != NULL) 
+                reg->tamanhoRegistro = strlen(reg->targetIndustry) + 2;
 
-            // Attack Type
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->attackType = campo;
-                reg->tamanhoRegistro += strlen(campo) + 2;
-            } else {
-                reg->attackType = NULL;
-                free(campo);
-            }
-
-            // Target Industry
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->targetIndustry = campo;
-                reg->tamanhoRegistro += strlen(campo) + 2;
-            } else {
-                reg->targetIndustry = NULL;
-                free(campo);
-            }
-
-            // Defense Mechanism
-            campo = LerStringComAspas();
-            if (strcmp(campo, "") != 0) {
-                reg->defenseMechanism = campo;
-                reg->tamanhoRegistro += strlen(campo) + 2;
-            } else {
-                reg->defenseMechanism = NULL;
-                free(campo);
-            }
+            reg->defenseMechanism = LerCampoStringComAspas();
+            if(reg->defenseMechanism != NULL) 
+                reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
 
             INSERT(arquivoEntrada, reg);
             ApagarRegistro(&reg);
@@ -290,7 +254,7 @@ int main(void) {
             FUNCIONALIDADE4();
             break;
         case 5:
-        FUNCIONALIDADE5();
+            FUNCIONALIDADE5();
             break;
         default:
             break;

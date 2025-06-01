@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-/*
-*/
 void INSERT(FILE *arquivo, REGISTRO *reg) {
     // Se arquivo nulo, encerra execução.
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
@@ -19,55 +17,56 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
         return;
     }
 
-    // Caso 1 - nenhum registro removido ou sem fit -> inserir fim
-    // Caso 2 - fit bem sucedido -> inserir no espaço e atualizar lista
-    long atual = c->topo;
-    long proxRegAnterior = 1;
-    bool fit = false;
+    // Byteoffset do campo Prox do registro Anterior 
+    // da lista de registros removidos.
+    long int campoProxAnterior = -1; // -1: não há.
+    long int succRegRem = c->topo; // Proximo Reg. Removido.
+    long int byteInsercao = -1; // Local de inserção do registro.
 
-    // Percorrer lista de offsets usando seek
-    for (int i = 0; i < c->nroRegRem; i++) {
-        fseek(arquivo, atual, SEEK_SET);
-
-        REGISTRO *removido = LerRegistro(arquivo);
+    while(succRegRem != -1) 
+    {
+        // Iniciar leitura a partir do campo tamanho.(Pula campo removido)
+        fseek(arquivo, succRegRem + sizeof(char), SEEK_SET);
+        int tamDisponivel;
+        fread(&tamDisponivel, sizeof(int), 1, arquivo); 
+        long int regAtual = succRegRem; 
+        fread(&succRegRem, sizeof(long int), 1, arquivo);  
         
-        int disponivel = removido->tamanhoRegistro;
-        long prox = removido->prox; // Próximo registro removido.
+        if(tamDisponivel >= reg->tamanhoRegistro)
+        {
+            // Caso: Registro a ser removido é o primeiro.
+            if (campoProxAnterior == -1) c->topo = succRegRem;
+            else {
+                // Manter ligamento da lista de removidos
+                fseek(arquivo, campoProxAnterior, SEEK_SET);
+                fwrite(&succRegRem, sizeof(long int), 1, arquivo);
+            }
 
-        ApagarRegistro(&removido);
-
-        if (disponivel >= reg->tamanhoRegistro) {
-            // First fit - usar espaço e adicionar $ no lixo
-
-            // Atualizar prox offset do registro proxRegAnterior
-            // Já cobre o caso do aterior ser o topo.
-            fseek(arquivo, proxRegAnterior, SEEK_SET);
-            fwrite(&prox, sizeof(long int), 1, arquivo);
-
-            // Retorna para o começo do reg atual 
-            fseek(arquivo, atual, SEEK_SET);
-
-            reg->tamanhoRegistro = disponivel;
-            // Escreve e preenche espaço vago
-            EscreverRegistro(&arquivo, reg);
-            
-            fit = true;
-            break;
+            // Prevalece tamanho do maior registro.
+            reg->tamanhoRegistro = tamDisponivel; 
+            byteInsercao = regAtual;
+            c->nroRegRem--;
+            break; 
         }
 
-        proxRegAnterior = atual + 5; // Byte offset id + tam
-        atual = prox;
+        // Salvar campo prox do registro atual.
+        campoProxAnterior = regAtual +  sizeof(char) + sizeof(int);
     }
 
-    // Caso não faça first fit, inserir no final;
-    if (!fit) {
-        fseek(arquivo, 0, SEEK_END);
-        EscreverRegistro(&arquivo, reg);
-        c->proxByteOffset = ftell(arquivo);
-    } else c->nroRegRem--;
+    // Caso: Inserção no fim do arquivo
+    if(succRegRem == -1) 
+    {
+        byteInsercao = c->proxByteOffset;
+        c->proxByteOffset += reg->tamanhoRegistro;
+    }
 
-    // Ajustar cabeçalho
+    // Inserir registro
+    fseek(arquivo, byteInsercao, SEEK_SET);
+    EscreverRegistro(&arquivo, reg);
+
+    // Atualizar cabeçalho
     c->nroRegArq++;
+    c->status = CONSISTENTE;
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
 

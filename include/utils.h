@@ -21,7 +21,15 @@
     // Lê conteúdo da string entre "" e salva
     void scan_quote_string(char *str);
 
-    // Lê string com aspas
+    // Lê string com aspas.
     char *LerStringComAspas(void);
+
+    /*Funções de leitura para FUNC5*/
+    // Le uma String e converte em inteiro.
+    int LerCampoInteiro(void);
+    // Le uma String e converte em float.
+    float LerCampoFloat(void);
+    // Le String com aspas e retorna NULL se campo NULO.
+    char *LerCampoStringComAspas(void); 
 
 #endif

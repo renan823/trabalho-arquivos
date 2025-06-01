@@ -4,6 +4,42 @@
 #include<string.h>
 #include<ctype.h>
 
+// Função para ler e processar campos numéricos inteiros
+int LerCampoInteiro(void) {
+    char* campo = LerString();
+		int valor = -1; // Valor NULO
+		// Preencher inteiro 
+    if (strcmp(campo, "NULO") != 0) valor = atoi(campo);
+
+    free(campo);
+		campo = NULL;
+
+		return valor;
+}
+
+// Função para ler e processar campos numéricos float
+float LerCampoFloat(void) {
+    char* campo = LerString();
+		float valor = -1; // Valor NULO
+		// Preencher float 
+    if (strcmp(campo, "NULO") != 0) valor = strtof(campo, NULL);
+
+    free(campo);
+		campo = NULL;
+
+		return valor;
+}
+
+// Função para ler e processar campos de string com aspas
+char *LerCampoStringComAspas(void) {
+		char* campo = LerStringComAspas();
+		if (strcmp(campo, "") == 0) {
+			free(campo);
+			campo = NULL;
+		}
+		return campo;
+}
+
 // Função lê uma string sem desperdício de memória
 char *LerString(void){
   char buffer[256];
