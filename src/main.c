@@ -5,6 +5,7 @@
 #include "buscar.h"
 #include "create_table.h"
 #include "delete.h"
+#include "insert.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -170,6 +171,71 @@ void FUNCIONALIDADE4(void){
     return;
 }
 
+/*
+Insere um registro
+*/
+void FUNCIONALIDADE5(void){
+    // Ler nome do arquivo de entrada.
+    char *nomeArquivoEntrada = LerString();
+
+    // Abrir arquivo de entrada para leitura e escrita
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
+
+    // Quantidades de remoções a serem realizadas
+    int quantInsert;
+    scanf("%d\n", &quantInsert);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantInsert--){
+            // Ler entrada da inserção.
+            REGISTRO *reg = CriarRegistroVazio();
+
+            // Ler campos fixos
+            scanf("%d", &reg->idAttack);
+            reg->year = LerCampoInteiro();
+            reg->financialLoss = LerCampoFloat();
+
+            // Ler Campos variáveis
+            reg->country = LerCampoStringComAspas();
+            if(reg->country != NULL) 
+
+            reg->attackType = LerCampoStringComAspas();
+            if(reg->attackType != NULL) 
+                reg->tamanhoRegistro = strlen(reg->attackType) + 2;
+
+            reg->targetIndustry = LerCampoStringComAspas();
+            if(reg->targetIndustry != NULL) 
+                reg->tamanhoRegistro = strlen(reg->targetIndustry) + 2;
+
+            reg->defenseMechanism = LerCampoStringComAspas();
+            if(reg->defenseMechanism != NULL) 
+                reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
+
+            // Campos variáveis
+            reg->country = LerCampoStringComAspas();
+            reg->attackType = LerCampoStringComAspas();
+        }
+
+        // Fechar arquivo
+        fclose(arquivoEntrada);
+        arquivoEntrada = NULL;
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoEntrada);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+
+    return;
+}
+
 void FUNCIONALIDADE6(void){
     // Ler nome do arquivo de entrada.
     char *nomeArquivoEntrada = LerString();
@@ -231,6 +297,7 @@ int main(void) {
             FUNCIONALIDADE4();
             break;
         case 5:
+            FUNCIONALIDADE5();
             break;
         case 6:
             FUNCIONALIDADE6();
