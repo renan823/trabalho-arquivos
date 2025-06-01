@@ -439,3 +439,4 @@ REGISTRO *DefinirCriterio(){
     }
     return reg;
 }
+

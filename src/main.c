@@ -202,7 +202,6 @@ void FUNCIONALIDADE5(void){
             // Ler Campos variáveis
             reg->country = LerCampoStringComAspas();
             if(reg->country != NULL) 
-                reg->tamanhoRegistro = strlen(reg->country) + 2;
 
             reg->attackType = LerCampoStringComAspas();
             if(reg->attackType != NULL) 
@@ -216,9 +215,11 @@ void FUNCIONALIDADE5(void){
             if(reg->defenseMechanism != NULL) 
                 reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
 
-            INSERT(arquivoEntrada, reg);
-            ApagarRegistro(&reg);
+            // Campos variáveis
+            reg->country = LerCampoStringComAspas();
+            reg->attackType = LerCampoStringComAspas();
         }
+
         // Fechar arquivo
         fclose(arquivoEntrada);
         arquivoEntrada = NULL;
