@@ -216,6 +216,7 @@ void FUNCIONALIDADE5(void){
             campo = LerStringComAspas();
             if (strcmp(campo, "") != 0) {
                 reg->country = campo;
+                reg->tamanhoRegistro += strlen(campo) + 2;
             } else {
                 reg->country = NULL;
                 free(campo);
@@ -225,6 +226,7 @@ void FUNCIONALIDADE5(void){
             campo = LerStringComAspas();
             if (strcmp(campo, "") != 0) {
                 reg->attackType = campo;
+                reg->tamanhoRegistro += strlen(campo) + 2;
             } else {
                 reg->attackType = NULL;
                 free(campo);
@@ -234,6 +236,7 @@ void FUNCIONALIDADE5(void){
             campo = LerStringComAspas();
             if (strcmp(campo, "") != 0) {
                 reg->targetIndustry = campo;
+                reg->tamanhoRegistro += strlen(campo) + 2;
             } else {
                 reg->targetIndustry = NULL;
                 free(campo);
@@ -243,6 +246,7 @@ void FUNCIONALIDADE5(void){
             campo = LerStringComAspas();
             if (strcmp(campo, "") != 0) {
                 reg->defenseMechanism = campo;
+                reg->tamanhoRegistro += strlen(campo) + 2;
             } else {
                 reg->defenseMechanism = NULL;
                 free(campo);
