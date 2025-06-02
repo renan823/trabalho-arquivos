@@ -2,6 +2,7 @@
 #include "erros.h"
 #include "buscar.h"
 #include "update.h"
+#include "insert.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,21 +21,32 @@ void UPDATE(FILE *arquivo, REGISTRO *criterio, REGISTRO *valoresAtualizados){
     }
 
     // Buscar registro sem filtro(todos os não removidos)
-    REGISTRO *registroBuscado = NULL;
+    REGISTRO *regBuscado = NULL;
     while (c->nroRegArq != 0 &&
-        (registroBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {
-        int espacoDisponivel = registroBuscado->tamanhoRegistro;
-        AtualizarRegistro(registroBuscado, valoresAtualizados);
-        fseek(arquivo, -(registroBuscado->tamanhoRegistro + 5), SEEK_CUR);
-        if(espacoDisponivel >= registroBuscado->tamanhoRegistro){
-          EscreverRegistro(&arquivo, registroBuscado);
+        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {
+    
+        // Atualizar registro encontrado, guardando o tamanho do desse registro.
+        int espacoDisponivel = regBuscado->tamanhoRegistro;
+        REGISTRO *regAtualizado = AtualizarRegistro(regBuscado, valoresAtualizados);
+    
+        // Retornar file pointer para inicio desse espaço.
+        fseek(arquivo, -(regBuscado->tamanhoRegistro + 5), SEEK_CUR);
+        
+        // Se após atualizar dados, verificar se cabe no espaço.
+        if(espacoDisponivel >= regAtualizado->tamanhoRegistro){
+            EscreverRegistro(&arquivo, regBuscado);
         } else {
-          long int byteAtual = ftell(arquivo);
-          RemoverRegistro(arquivo, c, registroBuscado);
-          // TO-DO: Inserir registro.
-          fseek(arquivo, byteAtual, SEEK_SET);
+            // Procurar nova posição para inserir, salvando aonde estava.
+            long int byteAtual = ftell(arquivo);
+            // Remover registro buscado
+            RemoverRegistro(arquivo, c, regBuscado);
+            // Inserir registro atualizado
+            INSERT(arquivo, regAtualizado);
+            fseek(arquivo, byteAtual, SEEK_SET);
         }
-        ApagarRegistro(&registroBuscado);
+
+        ApagarRegistro(&regBuscado);
+        ApagarRegistro(&regAtualizado);
     }    
 
     EscreverCabecalho(&arquivo, c);

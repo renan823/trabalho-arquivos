@@ -6,6 +6,7 @@
 #include "create_table.h"
 #include "delete.h"
 #include "insert.h"
+#include "update.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -202,6 +203,7 @@ void FUNCIONALIDADE5(void){
             // Ler Campos variáveis
             reg->country = LerCampoStringComAspas();
             if(reg->country != NULL) 
+                reg->tamanhoRegistro = strlen(reg->country) + 2;
 
             reg->attackType = LerCampoStringComAspas();
             if(reg->attackType != NULL) 
@@ -215,11 +217,9 @@ void FUNCIONALIDADE5(void){
             if(reg->defenseMechanism != NULL) 
                 reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
 
-            // Campos variáveis
-            reg->country = LerCampoStringComAspas();
-            reg->attackType = LerCampoStringComAspas();
+            INSERT(arquivoEntrada, reg);
+            ApagarRegistro(&reg);
         }
-
         // Fechar arquivo
         fclose(arquivoEntrada);
         arquivoEntrada = NULL;
@@ -261,6 +261,7 @@ void FUNCIONALIDADE6(void){
            
             // Apagar registro criterio
             ApagarRegistro(&criterio);
+            ApagarRegistro(&valoresAtualizados);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);

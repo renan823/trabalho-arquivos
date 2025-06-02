@@ -12,7 +12,7 @@ FLAGS = -Wall -std=c99 -pedantic -I$(INCLUDE)
 APP = programaTrab
 
 # All .o files 
-OBJECTS = cabecalho.o registro.o buscar.o erros.o main.o utils.o create_table.o delete.o insert.o
+OBJECTS = cabecalho.o registro.o buscar.o erros.o main.o utils.o create_table.o delete.o insert.o update.o
 
 all: $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) -o $(APP)
@@ -43,6 +43,9 @@ delete.o:
 
 insert.o:
 	$(CC) $(FLAGS) -c $(SOURCE)/insert.c -o insert.o
+
+update.o:
+	$(CC) $(FLAGS) -c $(SOURCE)/update.c -o update.o
 
 run:
 	./$(APP)
