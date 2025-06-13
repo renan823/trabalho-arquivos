@@ -204,19 +204,19 @@ void FUNCIONALIDADE5(void){
             // Ler Campos variáveis
             reg->country = LerStringComAspas();
             if(reg->country != NULL) 
-                reg->tamanhoRegistro = strlen(reg->country) + 2;
+                reg->tamanhoRegistro += strlen(reg->country) + 2;
 
             reg->attackType = LerStringComAspas();
             if(reg->attackType != NULL) 
-                reg->tamanhoRegistro = strlen(reg->attackType) + 2;
+                reg->tamanhoRegistro += strlen(reg->attackType) + 2;
 
             reg->targetIndustry = LerStringComAspas();
             if(reg->targetIndustry != NULL) 
-                reg->tamanhoRegistro = strlen(reg->targetIndustry) + 2;
+                reg->tamanhoRegistro += strlen(reg->targetIndustry) + 2;
 
             reg->defenseMechanism = LerStringComAspas();
             if(reg->defenseMechanism != NULL) 
-                reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
+                reg->tamanhoRegistro += strlen(reg->defenseMechanism) + 2;
 
             INSERT(arquivoEntrada, reg);
             ApagarRegistro(&reg);
