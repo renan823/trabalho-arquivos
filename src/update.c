@@ -23,8 +23,7 @@ void UPDATE(FILE *arquivo, CRITERIO *criterio, CRITERIO *valoresAtualizados){
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *regBuscado = NULL;
     while (c->nroRegArq != 0 &&
-        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {
-    
+        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {    
         // Atualizar registro encontrado, guardando o tamanho do desse registro.
         int espacoDisponivel = regBuscado->tamanhoRegistro;
         REGISTRO *regAtualizado = AtualizarRegistro(regBuscado, valoresAtualizados);
@@ -34,7 +33,8 @@ void UPDATE(FILE *arquivo, CRITERIO *criterio, CRITERIO *valoresAtualizados){
         
         // Se após atualizar dados, verificar se cabe no espaço.
         if(espacoDisponivel >= regAtualizado->tamanhoRegistro){
-            EscreverRegistro(&arquivo, regBuscado);
+          regAtualizado->tamanhoRegistro = espacoDisponivel;
+          EscreverRegistro(&arquivo, regAtualizado);
         } else {
             // Procurar nova posição para inserir, salvando aonde estava.
             long int byteAtual = ftell(arquivo);

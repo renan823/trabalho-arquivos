@@ -31,7 +31,6 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
         fread(&tamDisponivel, sizeof(int), 1, arquivo); 
         long int regAtual = succRegRem; 
         fread(&succRegRem, sizeof(long int), 1, arquivo);  
-        
         if(tamDisponivel >= reg->tamanhoRegistro)
         {
             // Caso: Registro a ser removido é o primeiro.
@@ -54,10 +53,10 @@ void INSERT(FILE *arquivo, REGISTRO *reg) {
     }
 
     // Caso: Inserção no fim do arquivo
-    if(succRegRem == -1) 
+    if(byteInsercao == -1) 
     {
         byteInsercao = c->proxByteOffset;
-        c->proxByteOffset += reg->tamanhoRegistro;
+        c->proxByteOffset += reg->tamanhoRegistro + sizeof(char) + sizeof(int);
     }
 
     // Inserir registro
