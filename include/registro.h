@@ -3,8 +3,10 @@
 
     #define SEPARADOR '|'
     #define REMOVIDO '1'
+    typedef struct registro REGISTRO;
 
     #include "cabecalho.h"
+    #include "criterio.h"
 
     #include <stdbool.h>
 
@@ -31,8 +33,6 @@
     defenseMechanism: estratégia de defesa cibernética empregada para resolver o problema(string)
     */
 
-    typedef struct registro REGISTRO;
-
     struct registro {
         // Gerenciamento
         char removido;
@@ -56,8 +56,6 @@
     void EscreverRegistro(FILE **arquivo, REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
     void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
-    bool SelecionarPorCriterio(REGISTRO* filtro, REGISTRO* reg);
-    REGISTRO *DefinirCriterio();
-    REGISTRO *AtualizarRegistro(REGISTRO *regAtual,REGISTRO *novosDados);
+    REGISTRO *AtualizarRegistro(REGISTRO *regAtual, CRITERIO *novosDados);
 
 #endif

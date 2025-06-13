@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-void ExibirRegistrosDadoCriterio(FILE *arquivo, REGISTRO *reg) {
+void ExibirRegistrosDadoCriterio(FILE *arquivo, CRITERIO *reg) {
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
 
     // Atualizar ponteiro do arquivo para o início
@@ -46,7 +46,7 @@ void ExibirRegistrosDadoCriterio(FILE *arquivo, REGISTRO *reg) {
 Função que busca um registro dado um critério,
 inicia na posição do ponteiro FILE.
 */
-REGISTRO *SELECT_WHERE(FILE *arquivo, REGISTRO *criterio){
+REGISTRO *SELECT_WHERE(FILE *arquivo, CRITERIO *criterio){
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
 
     REGISTRO *registroAtual = NULL;

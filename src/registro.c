@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#define MANTER_FIXO -2
 #define MSG_VAZIO "NADA CONSTA"
 #define LIXO '$'
 
@@ -364,116 +365,33 @@ void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg) {
     return;
 }
 
-bool SelecionarPorCriterio(REGISTRO* criterio, REGISTRO* reg) {
-    if(reg->removido == REMOVIDO || reg == NULL) return false;
-    // Se não há critério e registro não removido e não nulo
-    // o registro é valido.
-    if(criterio == NULL) return true;
-
-    /* Um registro é valido, se ele tem os criterios passados*/
-    // Verifica idAttack
-    if (criterio->idAttack != -1 && 
-        criterio->idAttack != reg->idAttack) {
-        return false;
-    }
-    
-    // Verifica year
-    if (criterio->year != -1 && 
-        criterio->year != reg->year) {
-        return false;
-    }
-    
-    // Verifica financialLoss
-    if (criterio->financialLoss != -1 && 
-        criterio->financialLoss != reg->financialLoss) {
-        return false;
-    }
-    
-    // Verifica strings (country, attackType, etc.)
-    if (criterio->country != NULL && 
-        (reg->country == NULL || 
-            strcmp(criterio->country, reg->country) != 0)) {
-        return false;
-    }
-    
-    if (criterio->attackType != NULL && 
-        (reg->attackType == NULL || 
-            strcmp(criterio->attackType, reg->attackType) != 0)) {
-        return false;
-    }
-    
-    if (criterio->targetIndustry != NULL && 
-        (reg->targetIndustry == NULL || 
-            strcmp(criterio->targetIndustry, reg->targetIndustry) != 0)) {
-        return false;
-    }
-    
-    if (criterio->defenseMechanism != NULL && 
-        (reg->defenseMechanism == NULL || 
-            strcmp(criterio->defenseMechanism, reg->defenseMechanism) != 0)) {
-        return false;
-    }
-    
-    // Se todas as verificações passaram
-    return true;
-}
-
-REGISTRO *DefinirCriterio(){
-    // Quantidade de campos em cada busca(filtros).
-    int quantCampos;
-    scanf("%d", &quantCampos);
-
-    // Registro a ser usado como filtro
-    REGISTRO *reg = CriarRegistroVazio();
-
-    // Ler campos inseridos pelo usuário
-    for(int i = 0; i < quantCampos; i++){
-        char *campo = LerString();
-        // Switch case do campo
-        if(!strcmp(campo, "idAttack")){
-            scanf(" %d", &(reg->idAttack));
-        } else if(!strcmp(campo, "year")) {
-            scanf(" %d", &(reg->year));
-        } else if(!strcmp(campo, "financialLoss")) {
-            scanf(" %f", &(reg->financialLoss));
-        } else if(!strcmp(campo, "country")) {
-            reg->country = LerStringComAspas();
-        } else if(!strcmp(campo, "attackType")) {
-            reg->attackType = LerStringComAspas();
-        } else if(!strcmp(campo, "targetIndustry")) {
-            reg->targetIndustry = LerStringComAspas();
-        } else if(!strcmp(campo, "defenseMechanism")) {
-            reg->defenseMechanism = LerStringComAspas();
-        } else {
-            printf("Erro ao ler campo\n");
-        }
-
-        free(campo);
-        campo = NULL;
-    }
-    return reg;
-}
-
-REGISTRO *AtualizarRegistro(REGISTRO *regAtual,REGISTRO *novosDados){
+REGISTRO *AtualizarRegistro(REGISTRO *regAtual,CRITERIO *novosDados){
     if(regAtual == NULL) DispararErro(ErroPonteiroInvalido());
 
     REGISTRO *regAtualizado = CriarRegistroVazio();
 
     /* Atualizar campos que foram inicializados */
-    if (novosDados->idAttack != -1) regAtualizado->idAttack = novosDados->idAttack;
-    else regAtualizado->idAttack = regAtual->idAttack;
+    if (novosDados->temIdAttack) 
+        regAtualizado->idAttack = novosDados->criterios->idAttack;
+    else 
+        regAtualizado->idAttack = regAtual->idAttack;
 
-    if (novosDados->year != -1) regAtualizado->year = novosDados->year;
-    else regAtualizado->year = regAtual->year;
+    if (novosDados->temYear) 
+        regAtualizado->year = novosDados->criterios->year;
+    else 
+        regAtualizado->year = regAtual->year;
 
-    if (novosDados->financialLoss != -1) regAtualizado->financialLoss = novosDados->financialLoss;
-    else regAtualizado->financialLoss = regAtual->financialLoss;
+    if (novosDados->temFinancialLoss) 
+        regAtualizado->financialLoss = novosDados->criterios->financialLoss;
+    else 
+        regAtualizado->financialLoss = regAtual->financialLoss;
      
     /* Atualizar Campos das Strings */
 
     // Ler campo country
-    if (novosDados->country != NULL) 
-        _copiarCampoVariavel(&(regAtualizado->country), &(novosDados->country));
+    if (novosDados->temCountry) 
+        _copiarCampoVariavel(&(regAtualizado->country),
+                            &(novosDados->criterios->country));
     else
         _copiarCampoVariavel(&(regAtualizado->country), &(regAtual->country));
 
@@ -481,8 +399,9 @@ REGISTRO *AtualizarRegistro(REGISTRO *regAtual,REGISTRO *novosDados){
         regAtualizado->tamanhoRegistro += strlen(regAtualizado->country) + 2;
 
     // Ler campo attackType 
-    if (novosDados->attackType != NULL) 
-        _copiarCampoVariavel(&(regAtualizado->attackType), &(novosDados->attackType));
+    if (novosDados->temAttackType) 
+        _copiarCampoVariavel(&(regAtualizado->attackType), 
+                            &(novosDados->criterios->attackType));
     else
         _copiarCampoVariavel(&(regAtualizado->attackType), &(regAtual->attackType));
 
@@ -490,8 +409,9 @@ REGISTRO *AtualizarRegistro(REGISTRO *regAtual,REGISTRO *novosDados){
         regAtualizado->tamanhoRegistro += strlen(regAtualizado->attackType) + 2;
     
     // Ler campo targetIndustry
-    if (novosDados->targetIndustry != NULL) 
-        _copiarCampoVariavel(&(regAtualizado->targetIndustry), &(novosDados->targetIndustry));
+    if (novosDados->temTargetIndustry) 
+        _copiarCampoVariavel(&(regAtualizado->targetIndustry),
+                            &(novosDados->criterios->targetIndustry));
     else
         _copiarCampoVariavel(&(regAtualizado->targetIndustry), &(regAtual->targetIndustry));
 
@@ -499,8 +419,9 @@ REGISTRO *AtualizarRegistro(REGISTRO *regAtual,REGISTRO *novosDados){
         regAtualizado->tamanhoRegistro += strlen(regAtualizado->targetIndustry) + 2;
 
     // Ler campo de defenseMechanism
-    if (novosDados->defenseMechanism != NULL) 
-        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), &(novosDados->defenseMechanism));
+    if (novosDados->temDefenseMechanism) 
+        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), 
+                            &(novosDados->criterios->defenseMechanism));
     else
         _copiarCampoVariavel(&(regAtualizado->defenseMechanism), &(regAtual->defenseMechanism));
 

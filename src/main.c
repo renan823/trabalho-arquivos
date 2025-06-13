@@ -7,6 +7,7 @@
 #include "delete.h"
 #include "insert.h"
 #include "update.h"
+#include "criterio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,14 +108,14 @@ void FUNCIONALIDADE3(void){
     } else {
         while(quantBuscas--){
             // Le os criterios a serem avaliados
-            REGISTRO *criterio = DefinirCriterio();
+            CRITERIO *criterio = DefinirCriterio();
 
             ExibirRegistrosDadoCriterio(arquivoEntrada, criterio);
 
             printf("**********\n");
 
             // Apagar registro filtro
-            ApagarRegistro(&criterio);
+            ApagarCriterio(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -150,11 +151,11 @@ void FUNCIONALIDADE4(void){
     } else {
         while(quantRemove--){
             // Le os criterios a serem avaliados
-            REGISTRO *criterio = DefinirCriterio();
+            CRITERIO *criterio = DefinirCriterio();
 
             DELETE(arquivoEntrada, criterio);
             // Apagar registro criterio
-            ApagarRegistro(&criterio);
+            ApagarCriterio(&criterio);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);
@@ -201,19 +202,19 @@ void FUNCIONALIDADE5(void){
             reg->financialLoss = LerCampoFloat();
 
             // Ler Campos variáveis
-            reg->country = LerCampoStringComAspas();
+            reg->country = LerStringComAspas();
             if(reg->country != NULL) 
                 reg->tamanhoRegistro = strlen(reg->country) + 2;
 
-            reg->attackType = LerCampoStringComAspas();
+            reg->attackType = LerStringComAspas();
             if(reg->attackType != NULL) 
                 reg->tamanhoRegistro = strlen(reg->attackType) + 2;
 
-            reg->targetIndustry = LerCampoStringComAspas();
+            reg->targetIndustry = LerStringComAspas();
             if(reg->targetIndustry != NULL) 
                 reg->tamanhoRegistro = strlen(reg->targetIndustry) + 2;
 
-            reg->defenseMechanism = LerCampoStringComAspas();
+            reg->defenseMechanism = LerStringComAspas();
             if(reg->defenseMechanism != NULL) 
                 reg->tamanhoRegistro = strlen(reg->defenseMechanism) + 2;
 
@@ -254,14 +255,14 @@ void FUNCIONALIDADE6(void){
     } else {
         while(quantUpdate--){
             // Le os criterios a serem avaliados
-            REGISTRO *criterio = DefinirCriterio();
-            REGISTRO *valoresAtualizados = DefinirCriterio();
+            CRITERIO *criterio = DefinirCriterio();
+            CRITERIO *valoresAtualizados = DefinirCriterio();
 
             UPDATE(arquivoEntrada, criterio, valoresAtualizados);
            
             // Apagar registro criterio
-            ApagarRegistro(&criterio);
-            ApagarRegistro(&valoresAtualizados);
+            ApagarCriterio(&criterio);
+            ApagarCriterio(&valoresAtualizados);
         }
         // Fechar arquivo
         fclose(arquivoEntrada);

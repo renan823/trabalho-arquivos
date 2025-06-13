@@ -71,6 +71,9 @@ char *LerStringComAspas(void){
 
 	scan_quote_string(buffer);
 
+	// Retorna NULL se string vazia
+	if(strcmp(buffer, "") == 0) return NULL;
+
 	// Retorna tamanho da string sem o \0
 	int tamString = strlen(buffer);
 

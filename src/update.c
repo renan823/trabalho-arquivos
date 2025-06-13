@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-void UPDATE(FILE *arquivo, REGISTRO *criterio, REGISTRO *valoresAtualizados){
+void UPDATE(FILE *arquivo, CRITERIO *criterio, CRITERIO *valoresAtualizados){
     // Se arquivo nulo, encerra execução.
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
 

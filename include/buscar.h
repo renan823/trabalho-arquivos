@@ -2,10 +2,11 @@
     #define BUSCAR_H_
 
     #include "registro.h"
+    #include "criterio.h"
 
     #include <stdio.h>
 
-    void ExibirRegistrosDadoCriterio(FILE *arquivo, REGISTRO *reg);
-    REGISTRO *SELECT_WHERE(FILE *arquivo, REGISTRO *filtro);
+    void ExibirRegistrosDadoCriterio(FILE *arquivo, CRITERIO *reg);
+    REGISTRO *SELECT_WHERE(FILE *arquivo, CRITERIO *filtro);
 
 #endif

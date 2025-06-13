@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-void DELETE(FILE *arquivo, REGISTRO *reg) {
+void DELETE(FILE *arquivo, CRITERIO *crit) {
     // Se arquivo nulo, encerra execução.
     if(arquivo == NULL) DispararErro(ErroArquivoInvalido());
 
@@ -21,7 +21,7 @@ void DELETE(FILE *arquivo, REGISTRO *reg) {
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *registroBuscado = NULL;
     while (c->nroRegArq != 0 &&
-        (registroBuscado = SELECT_WHERE(arquivo, reg)) != NULL) {
+        (registroBuscado = SELECT_WHERE(arquivo, crit)) != NULL) {
         fseek(arquivo, -(registroBuscado->tamanhoRegistro + 5), SEEK_CUR);
         RemoverRegistro(arquivo, c, registroBuscado);
         c->nroRegArq--;
