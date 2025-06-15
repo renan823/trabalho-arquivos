@@ -24,8 +24,6 @@ void DELETE(FILE *arquivo, CRITERIO *crit) {
         (registroBuscado = SELECT_WHERE(arquivo, crit)) != NULL) {
         fseek(arquivo, -(registroBuscado->tamanhoRegistro + 5), SEEK_CUR);
         RemoverRegistro(arquivo, c, registroBuscado);
-        c->nroRegArq--;
-        c->nroRegRem++;
         ApagarRegistro(&registroBuscado);
     }    
 

@@ -40,8 +40,11 @@ void UPDATE(FILE *arquivo, CRITERIO *criterio, CRITERIO *valoresAtualizados){
             long int byteAtual = ftell(arquivo);
             // Remover registro buscado
             RemoverRegistro(arquivo, c, regBuscado);
+            EscreverCabecalho(&arquivo, c);
+            ApagarCabecalho(&c);
             // Inserir registro atualizado
             INSERT(arquivo, regAtualizado);
+            c = LerCabecalho(&arquivo);
             fseek(arquivo, byteAtual, SEEK_SET);
         }
 

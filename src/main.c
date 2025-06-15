@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* 
+/*
 CREATE_TABLE:
 Função que le registros em um CSV e armazena em um arquivo binário
 */
@@ -306,6 +306,6 @@ int main(void) {
             break;
         default:
             break;
-    }   
+    } 
     return 0;
 }

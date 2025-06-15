@@ -360,7 +360,8 @@ void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg) {
     reg->removido = '1';
     reg->prox = c->topo;
     c->topo = ftell(arquivo);
-
+    c->nroRegArq--;
+    c->nroRegRem++;
     EscreverRegistro(&arquivo, reg);
     return;
 }
