@@ -35,6 +35,8 @@ void ExibirRegistrosDadoCriterio(FILE *arquivo, CRITERIO *reg) {
         ExibirRegistro(registroBuscado);
         ApagarRegistro(&registroBuscado);
         existeRegistro = true;
+        // Se achou por idAttack, acabou a busca(identificador único)
+        if(reg != NULL && reg->temIdAttack) break;
     }    
 
     if(existeRegistro == false) DispararErro(ErroRegistroInexistente());

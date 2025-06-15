@@ -50,6 +50,9 @@ void UPDATE(FILE *arquivo, CRITERIO *criterio, CRITERIO *valoresAtualizados){
 
         ApagarRegistro(&regBuscado);
         ApagarRegistro(&regAtualizado);
+
+        // Se achou por idAttack, acabou a busca(identificador único)
+        if(criterio->temIdAttack) break;
     }    
 
     EscreverCabecalho(&arquivo, c);

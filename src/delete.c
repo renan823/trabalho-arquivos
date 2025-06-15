@@ -25,6 +25,8 @@ void DELETE(FILE *arquivo, CRITERIO *crit) {
         fseek(arquivo, -(registroBuscado->tamanhoRegistro + 5), SEEK_CUR);
         RemoverRegistro(arquivo, c, registroBuscado);
         ApagarRegistro(&registroBuscado);
+        // Se achou por idAttack, acabou a busca(identificador único)
+        if(crit->temIdAttack) break;
     }    
 
     EscreverCabecalho(&arquivo, c);

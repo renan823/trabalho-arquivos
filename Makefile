@@ -9,7 +9,7 @@ SOURCE = ./src
 FLAGS = -Wall -std=c99 -pedantic -I$(INCLUDE)
 
 # App name
-APP = trabalho
+APP = programaTrab
 
 # All .o files 
 OBJECTS = cabecalho.o registro.o buscar.o erros.o main.o utils.o create_table.o delete.o insert.o update.o criterio.o
