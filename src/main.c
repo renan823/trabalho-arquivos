@@ -1,17 +1,52 @@
 #include "erros.h"
 #include "cabecalho.h"
+#include "SQL.h"
 #include "registro.h"
-#include "utils.h"
-#include "buscar.h"
-#include "create_table.h"
-#include "delete.h"
-#include "insert.h"
-#include "update.h"
 #include "criterio.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Protótipos */
+void FUNCIONALIDADE1(void);
+void FUNCIONALIDADE2(void);
+void FUNCIONALIDADE3(void);
+void FUNCIONALIDADE4(void);
+void FUNCIONALIDADE5(void);
+void FUNCIONALIDADE6(void);
+
+int main(void) {
+    // Ler funcionalidade selecionada e nome arquivo de entrada
+    int funcionalidade;
+    scanf("%d", &funcionalidade);
+
+    switch (funcionalidade){
+        case 1:
+            FUNCIONALIDADE1();
+            break;
+        case 2:
+            FUNCIONALIDADE2();
+            break;
+        case 3:
+            FUNCIONALIDADE3();
+            break;
+        case 4:
+            FUNCIONALIDADE4();
+            break;
+        case 5:
+            FUNCIONALIDADE5();
+            break;
+        case 6:
+            FUNCIONALIDADE6();
+            break;
+        default:
+            break;
+    } 
+    return 0;
+}
+
 
 /*
 CREATE_TABLE:
@@ -130,8 +165,8 @@ void FUNCIONALIDADE3(void){
 }
 
 /*
-DELETE:
-Remove registros logicamente de acordo com filtro
+DELETE: 
+Remove registros logicamente de acordo com filtro 
 */
 void FUNCIONALIDADE4(void){
     // Ler nome do arquivo de entrada.
@@ -153,7 +188,7 @@ void FUNCIONALIDADE4(void){
             // Le os criterios a serem avaliados
             CRITERIO *criterio = DefinirCriterio();
 
-            DELETE(arquivoEntrada, criterio);
+            RemoverRegistroDadoCriterio(arquivoEntrada, criterio);
             // Apagar registro criterio
             ApagarCriterio(&criterio);
         }
@@ -173,9 +208,7 @@ void FUNCIONALIDADE4(void){
     return;
 }
 
-/*
-Insere um registro
-*/
+/* INSERT */
 void FUNCIONALIDADE5(void){
     // Ler nome do arquivo de entrada.
     char *nomeArquivoEntrada = LerString();
@@ -218,7 +251,7 @@ void FUNCIONALIDADE5(void){
             if(reg->defenseMechanism != NULL) 
                 reg->tamanhoRegistro += strlen(reg->defenseMechanism) + 2;
 
-            INSERT(arquivoEntrada, reg);
+            InserirRegistro(arquivoEntrada, reg);
             ApagarRegistro(&reg);
         }
         // Fechar arquivo
@@ -237,6 +270,7 @@ void FUNCIONALIDADE5(void){
     return;
 }
 
+/* UPDATE */
 void FUNCIONALIDADE6(void){
     // Ler nome do arquivo de entrada.
     char *nomeArquivoEntrada = LerString();
@@ -258,7 +292,7 @@ void FUNCIONALIDADE6(void){
             CRITERIO *criterio = DefinirCriterio();
             CRITERIO *valoresAtualizados = DefinirCriterio();
 
-            UPDATE(arquivoEntrada, criterio, valoresAtualizados);
+            AtualizarRegistroDadoCriterio(arquivoEntrada, criterio, valoresAtualizados);
            
             // Apagar registro criterio
             ApagarCriterio(&criterio);
@@ -278,34 +312,4 @@ void FUNCIONALIDADE6(void){
     nomeArquivoEntrada = NULL;
 
     return;
-}
-
-int main(void) {
-    // Ler funcionalidade selecionada e nome arquivo de entrada
-    int funcionalidade;
-    scanf("%d", &funcionalidade);
-
-    switch (funcionalidade){
-        case 1:
-            FUNCIONALIDADE1();
-            break;
-        case 2:
-            FUNCIONALIDADE2();
-            break;
-        case 3:
-            FUNCIONALIDADE3();
-            break;
-        case 4:
-            FUNCIONALIDADE4();
-            break;
-        case 5:
-            FUNCIONALIDADE5();
-            break;
-        case 6:
-            FUNCIONALIDADE6();
-            break;
-        default:
-            break;
-    } 
-    return 0;
 }

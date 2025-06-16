@@ -55,7 +55,7 @@
     void PreencherRegistro(REGISTRO **reg, char *buffer);
     void EscreverRegistro(FILE **arquivo, REGISTRO *reg);
     REGISTRO *LerRegistro(FILE *arquivo);
-    void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
-    REGISTRO *AtualizarRegistro(REGISTRO *regAtual, CRITERIO *novosDados);
+    void DELETE(FILE *arquivo, CABECALHO *c, REGISTRO *reg);
+    REGISTRO *CriarRegistroAtualizado(REGISTRO *regAtual, CRITERIO *novosDados);
 
 #endif

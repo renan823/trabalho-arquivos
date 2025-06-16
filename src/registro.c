@@ -11,6 +11,291 @@
 #define MSG_VAZIO "NADA CONSTA"
 #define LIXO '$'
 
+/* Protótipos */
+void _ajustarLixo(char *campoVariavel);
+char *_CopiarCampoString(const char *novosDados);
+int _LerCamposFixos(FILE *arquivo, REGISTRO *reg);
+int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg);
+int _ProcessarCampoVariavel(char codigo, char *valor, REGISTRO *reg);
+void _copiarCampoVariavel(char **destino, char **origem);
+
+/*
+Aloca memória para um registro.
+Dispara erro em caso de ponteiro NULL
+*/
+REGISTRO *CriarRegistroVazio(void) {
+    REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
+
+    if (reg == NULL) DispararErro(ErroAlocacaoMemoria());
+
+    reg->removido = '0';
+    // Tamanho fixo do registro
+    reg->tamanhoRegistro = 20;
+    // Inicializar campos fixos com -1.
+    reg->prox = -1;
+    reg->idAttack = -1;
+    reg->year = -1;
+    reg->financialLoss = -1;
+    // Campos variaveis setar para NULL
+    reg->country = NULL; 
+    reg->attackType = NULL; 
+    reg->targetIndustry = NULL; 
+    reg->defenseMechanism = NULL;
+
+    return reg;
+}
+
+/* Função que escreve um registro em um arquivo binário */
+void EscreverRegistro(FILE **arquivo, REGISTRO *reg) {
+    if (*arquivo == NULL) DispararErro(ErroArquivoInvalido());
+    if (reg == NULL) {
+        printf("Passado registro nulo para ser escrito.\n");
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Tamanho dos campos fixos (calculado dinamicamente)
+    int tamanhoCamposFixos = sizeof(long int) + sizeof(int) + sizeof(int) + sizeof(float);
+
+    // Escrever campos fixos
+    fwrite(&(reg->removido), sizeof(char), 1, *arquivo);
+    fwrite(&(reg->tamanhoRegistro), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->prox), sizeof(long int), 1, *arquivo);
+    fwrite(&(reg->idAttack), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->year), sizeof(int), 1, *arquivo);
+    fwrite(&(reg->financialLoss), sizeof(float), 1, *arquivo);
+
+    char sep = SEPARADOR;
+    int tamRestante = reg->tamanhoRegistro - tamanhoCamposFixos;
+
+    // Escrever campos variáveis se existirem
+    if (reg->country && reg->country[0] != LIXO) {
+        fwrite("1", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->country) + 2; 
+        fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
+        fwrite(&sep, sizeof(char), 1, *arquivo);
+    }
+
+    if (reg->attackType && reg->attackType[0] != LIXO) {
+        fwrite("2", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->attackType) + 2;
+        fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
+        fwrite(&sep, sizeof(char), 1, *arquivo);
+    }
+
+    if (reg->targetIndustry && reg->targetIndustry[0] != LIXO) {
+        fwrite("3", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->targetIndustry) + 2;
+        fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
+        fwrite(&sep, sizeof(char), 1, *arquivo);
+    }
+
+    if (reg->defenseMechanism && reg->defenseMechanism[0] != LIXO) {
+        fwrite("4", sizeof(char), 1, *arquivo);
+        tamRestante -= strlen(reg->defenseMechanism) + 2;
+        fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
+        fwrite(&sep, sizeof(char), 1, *arquivo);
+    }
+
+    // Preencher o restante com '$'
+    if (tamRestante > 0) {
+        char lixo = LIXO;
+        for (int i = 0; i < tamRestante; i++) {
+            fwrite(&lixo, sizeof(char), 1, *arquivo);
+        }
+    }
+}
+
+/* Exibe os campos do regsitro, cuidando de valores nulos/vazios. */
+void ExibirRegistro(REGISTRO *reg) {
+    CABECALHO *c = CriarCabecalhoPadrao();
+
+    if (reg == NULL || c == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Campo idAttack
+    if (reg->idAttack == -1) {
+        printf("%s: %s\n", c->descreveIdentificador, MSG_VAZIO);
+    } else {
+        printf("%s: %d\n", c->descreveIdentificador, reg->idAttack);
+    }
+
+    // Campo year
+    if (reg->year == -1) {
+        printf("%s: %s\n", c->descreveYear, MSG_VAZIO);
+    } else { 
+        printf("%s: %d\n", c->descreveYear, reg->year);
+    }
+
+    // Campo country
+    printf("%s: %s\n", c->descreveCountry, 
+        reg->country == NULL ? MSG_VAZIO : reg->country);
+
+    // Campo targetIndustry
+    printf("%s: %s\n", c->descreveTargetIndustry, 
+                        reg->targetIndustry == NULL ? MSG_VAZIO:reg->targetIndustry);
+
+    // Campo attackType
+    printf("%s: %s\n", c->descreveType,
+                        reg->attackType == NULL ? MSG_VAZIO : reg->attackType);
+                        
+    // Campo financialLoss
+    if (reg->financialLoss == -1) {
+        printf("%s: %s\n", c->descreveFinancialLoss, MSG_VAZIO);
+    } else {
+        printf("%s: %.2f\n", c->descreveFinancialLoss, reg->financialLoss);
+    }
+
+    // Campo defenseMechanism
+    printf("%s: %s\n", c->descreveDefense,
+                        reg->defenseMechanism == NULL ? MSG_VAZIO : reg->defenseMechanism);
+
+    ApagarCabecalho(&c);
+
+    // Pular linha
+    printf("\n");
+}
+
+
+/* Desaloca um registro da memória */
+void ApagarRegistro(REGISTRO **reg) {
+    if (*reg == NULL){
+        printf("Passado registro nulo para ser apagado.\n");
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Desalocar campos variáveis
+    if ((*reg)->country != NULL) {
+        free((*reg)->country);
+        (*reg)->country = NULL;
+    }; 
+
+    if ((*reg)->attackType != NULL) {
+        free((*reg)->attackType);
+        (*reg)->attackType = NULL;
+    }; 
+
+    if ((*reg)->targetIndustry != NULL) {
+        free((*reg)->targetIndustry);
+        (*reg)->targetIndustry = NULL;
+    }; 
+
+    if ((*reg)->defenseMechanism != NULL) {
+        free((*reg)->defenseMechanism);
+        (*reg)->defenseMechanism = NULL;
+    }; 
+
+    // Desalocar registro todo
+    free(*reg);
+    *reg = NULL;
+}
+
+/* Dado um seletor para o inicio do registro, le os campos */
+REGISTRO *LerRegistro(FILE *arquivo) {
+    if (arquivo == NULL) {
+        DispararErro(ErroArquivoInvalido());
+        return NULL;
+    }
+    
+    REGISTRO *reg = CriarRegistroVazio();
+    if (reg == NULL) {
+        DispararErro(ErroAlocacaoMemoria());
+        return NULL;
+    }
+    
+    // Ler campos fixos
+    if (!_LerCamposFixos(arquivo, reg)) {
+        // Falha nesse processo pode indicar que
+        // chegou-se ao fim do arquivo, logo é esperado
+        // caso de falha, assim, deve-se continuar execução.
+        ApagarRegistro(&reg);
+        return NULL;
+    }
+
+    // Calcular tamanho dos campos variáveis
+    int tamRestante = reg->tamanhoRegistro - 20; // 20 bytes dos campos fixos
+    
+    // Ler campos variáveis se existirem
+    if (tamRestante > 0 && !_LerCamposVariaveis(arquivo, tamRestante, reg)) {
+        // Se existe campo fixo, o registro existe, logo não é esperado
+        // continuar o programa desse ponto se os campos variáveis não foram lidos.
+        printf("Erro ao ler os campos variáveis.\n");
+        ApagarRegistro(&reg);
+        return NULL;
+    }
+    
+    return reg;
+}
+
+/* 
+Cria registro atualizando o que tem de novo,
+caso contrario, mantém os dados antigos.
+*/
+REGISTRO *CriarRegistroAtualizado(REGISTRO *regAtual,CRITERIO *novosDados){
+    if(regAtual == NULL) DispararErro(ErroPonteiroInvalido());
+
+    REGISTRO *regAtualizado = CriarRegistroVazio();
+
+    /* Atualizar campos que foram inicializados */
+    if (novosDados->temIdAttack) 
+        regAtualizado->idAttack = novosDados->criterios->idAttack;
+    else 
+        regAtualizado->idAttack = regAtual->idAttack;
+
+    if (novosDados->temYear) 
+        regAtualizado->year = novosDados->criterios->year;
+    else 
+        regAtualizado->year = regAtual->year;
+
+    if (novosDados->temFinancialLoss) 
+        regAtualizado->financialLoss = novosDados->criterios->financialLoss;
+    else 
+        regAtualizado->financialLoss = regAtual->financialLoss;
+     
+    /* Atualizar Campos das Strings */
+
+    // Ler campo country
+    if (novosDados->temCountry) 
+        _copiarCampoVariavel(&(regAtualizado->country),
+                            &(novosDados->criterios->country));
+    else
+        _copiarCampoVariavel(&(regAtualizado->country), &(regAtual->country));
+
+    if(regAtualizado->country != NULL)    
+        regAtualizado->tamanhoRegistro += strlen(regAtualizado->country) + 2;
+
+    // Ler campo attackType 
+    if (novosDados->temAttackType) 
+        _copiarCampoVariavel(&(regAtualizado->attackType), 
+                            &(novosDados->criterios->attackType));
+    else
+        _copiarCampoVariavel(&(regAtualizado->attackType), &(regAtual->attackType));
+
+    if(regAtualizado->attackType != NULL)    
+        regAtualizado->tamanhoRegistro += strlen(regAtualizado->attackType) + 2;
+    
+    // Ler campo targetIndustry
+    if (novosDados->temTargetIndustry) 
+        _copiarCampoVariavel(&(regAtualizado->targetIndustry),
+                            &(novosDados->criterios->targetIndustry));
+    else
+        _copiarCampoVariavel(&(regAtualizado->targetIndustry), &(regAtual->targetIndustry));
+
+    if(regAtualizado->targetIndustry != NULL)    
+        regAtualizado->tamanhoRegistro += strlen(regAtualizado->targetIndustry) + 2;
+
+    // Ler campo de defenseMechanism
+    if (novosDados->temDefenseMechanism) 
+        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), 
+                            &(novosDados->criterios->defenseMechanism));
+    else
+        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), &(regAtual->defenseMechanism));
+
+    if(regAtualizado->defenseMechanism != NULL)    
+        regAtualizado->tamanhoRegistro += strlen(regAtualizado->defenseMechanism) + 2;
+    
+    return regAtualizado;
+}
 
 // Copia um campo variavel no outro se existir
 void _copiarCampoVariavel(char **destino, char **origem){
@@ -135,300 +420,4 @@ int _LerCamposVariaveis(FILE *arquivo, int tamanhoRestante, REGISTRO *reg) {
     return 1;
 }
 
-/*
-Aloca memória para um registro.
-Dispara erro em caso de ponteiro NULL
-*/
-REGISTRO *CriarRegistroVazio(void) {
-    REGISTRO *reg = (REGISTRO*) malloc(sizeof(REGISTRO));
-
-    if (reg == NULL) DispararErro(ErroAlocacaoMemoria());
-
-    reg->removido = '0';
-    // Tamanho fixo do registro
-    reg->tamanhoRegistro = 20;
-    // Inicializar campos fixos com -1.
-    reg->prox = -1;
-    reg->idAttack = -1;
-    reg->year = -1;
-    reg->financialLoss = -1;
-    // Campos variaveis setar para NULL
-    reg->country = NULL; 
-    reg->attackType = NULL; 
-    reg->targetIndustry = NULL; 
-    reg->defenseMechanism = NULL;
-
-    return reg;
-}
-
-/* 
-Função que escreve um registro em um arquivo binário
-*/
-void EscreverRegistro(FILE **arquivo, REGISTRO *reg) {
-    if (*arquivo == NULL) DispararErro(ErroArquivoInvalido());
-    if (reg == NULL) {
-        printf("Passado registro nulo para ser escrito.\n");
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Tamanho dos campos fixos (calculado dinamicamente)
-    int tamanhoCamposFixos = sizeof(long int) + sizeof(int) + sizeof(int) + sizeof(float);
-
-    // Escrever campos fixos
-    fwrite(&(reg->removido), sizeof(char), 1, *arquivo);
-    fwrite(&(reg->tamanhoRegistro), sizeof(int), 1, *arquivo);
-    fwrite(&(reg->prox), sizeof(long int), 1, *arquivo);
-    fwrite(&(reg->idAttack), sizeof(int), 1, *arquivo);
-    fwrite(&(reg->year), sizeof(int), 1, *arquivo);
-    fwrite(&(reg->financialLoss), sizeof(float), 1, *arquivo);
-
-    char sep = SEPARADOR;
-    int tamRestante = reg->tamanhoRegistro - tamanhoCamposFixos;
-
-    // Escrever campos variáveis se existirem
-    if (reg->country && reg->country[0] != LIXO) {
-        fwrite("1", sizeof(char), 1, *arquivo);
-        tamRestante -= strlen(reg->country) + 2; 
-        fwrite(reg->country, sizeof(char), strlen(reg->country), *arquivo);
-        fwrite(&sep, sizeof(char), 1, *arquivo);
-    }
-
-    if (reg->attackType && reg->attackType[0] != LIXO) {
-        fwrite("2", sizeof(char), 1, *arquivo);
-        tamRestante -= strlen(reg->attackType) + 2;
-        fwrite(reg->attackType, sizeof(char), strlen(reg->attackType), *arquivo);
-        fwrite(&sep, sizeof(char), 1, *arquivo);
-    }
-
-    if (reg->targetIndustry && reg->targetIndustry[0] != LIXO) {
-        fwrite("3", sizeof(char), 1, *arquivo);
-        tamRestante -= strlen(reg->targetIndustry) + 2;
-        fwrite(reg->targetIndustry, sizeof(char), strlen(reg->targetIndustry), *arquivo);
-        fwrite(&sep, sizeof(char), 1, *arquivo);
-    }
-
-    if (reg->defenseMechanism && reg->defenseMechanism[0] != LIXO) {
-        fwrite("4", sizeof(char), 1, *arquivo);
-        tamRestante -= strlen(reg->defenseMechanism) + 2;
-        fwrite(reg->defenseMechanism, sizeof(char), strlen(reg->defenseMechanism), *arquivo);
-        fwrite(&sep, sizeof(char), 1, *arquivo);
-    }
-
-    // Preencher o restante com '$'
-    if (tamRestante > 0) {
-        char lixo = LIXO;
-        for (int i = 0; i < tamRestante; i++) {
-            fwrite(&lixo, sizeof(char), 1, *arquivo);
-        }
-    }
-}
-
-/*
-Exibe os campos do regsitro, cuidando de valores nulos/vazios.
-*/
-void ExibirRegistro(REGISTRO *reg) {
-    CABECALHO *c = CriarCabecalhoPadrao();
-
-    if (reg == NULL || c == NULL) {
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Campo idAttack
-    if (reg->idAttack == -1) {
-        printf("%s: %s\n", c->descreveIdentificador, MSG_VAZIO);
-    } else {
-        printf("%s: %d\n", c->descreveIdentificador, reg->idAttack);
-    }
-
-    // Campo year
-    if (reg->year == -1) {
-        printf("%s: %s\n", c->descreveYear, MSG_VAZIO);
-    } else { 
-        printf("%s: %d\n", c->descreveYear, reg->year);
-    }
-
-    // Campo country
-    printf("%s: %s\n", c->descreveCountry, 
-        reg->country == NULL ? MSG_VAZIO : reg->country);
-
-    // Campo targetIndustry
-    printf("%s: %s\n", c->descreveTargetIndustry, 
-                        reg->targetIndustry == NULL ? MSG_VAZIO:reg->targetIndustry);
-
-    // Campo attackType
-    printf("%s: %s\n", c->descreveType,
-                        reg->attackType == NULL ? MSG_VAZIO : reg->attackType);
-                        
-    // Campo financialLoss
-    if (reg->financialLoss == -1) {
-        printf("%s: %s\n", c->descreveFinancialLoss, MSG_VAZIO);
-    } else {
-        printf("%s: %.2f\n", c->descreveFinancialLoss, reg->financialLoss);
-    }
-
-    // Campo defenseMechanism
-    printf("%s: %s\n", c->descreveDefense,
-                        reg->defenseMechanism == NULL ? MSG_VAZIO : reg->defenseMechanism);
-
-    ApagarCabecalho(&c);
-
-    // Pular linha
-    printf("\n");
-}
-
-
-/*
-    Desaloca um registro da memória
-*/
-void ApagarRegistro(REGISTRO **reg) {
-    if (*reg == NULL){
-        printf("Passado registro nulo para ser apagado.\n");
-        DispararErro(ErroPonteiroInvalido());
-    }
-
-    // Desalocar campos variáveis
-    if ((*reg)->country != NULL) {
-        free((*reg)->country);
-        (*reg)->country = NULL;
-    }; 
-
-    if ((*reg)->attackType != NULL) {
-        free((*reg)->attackType);
-        (*reg)->attackType = NULL;
-    }; 
-
-    if ((*reg)->targetIndustry != NULL) {
-        free((*reg)->targetIndustry);
-        (*reg)->targetIndustry = NULL;
-    }; 
-
-    if ((*reg)->defenseMechanism != NULL) {
-        free((*reg)->defenseMechanism);
-        (*reg)->defenseMechanism = NULL;
-    }; 
-
-    // Desalocar registro todo
-    free(*reg);
-    *reg = NULL;
-}
-
-REGISTRO *LerRegistro(FILE *arquivo) {
-    if (arquivo == NULL) {
-        DispararErro(ErroArquivoInvalido());
-        return NULL;
-    }
-    
-    REGISTRO *reg = CriarRegistroVazio();
-    if (reg == NULL) {
-        DispararErro(ErroAlocacaoMemoria());
-        return NULL;
-    }
-    
-    // Ler campos fixos
-    if (!_LerCamposFixos(arquivo, reg)) {
-        // Falha nesse processo pode indicar que
-        // chegou-se ao fim do arquivo, logo é esperado
-        // caso de falha, assim, deve-se continuar execução.
-        ApagarRegistro(&reg);
-        return NULL;
-    }
-
-    // Calcular tamanho dos campos variáveis
-    int tamRestante = reg->tamanhoRegistro - 20; // 20 bytes dos campos fixos
-    
-    // Ler campos variáveis se existirem
-    if (tamRestante > 0 && !_LerCamposVariaveis(arquivo, tamRestante, reg)) {
-        // Se existe campo fixo, o registro existe, logo não é esperado
-        // continuar o programa desse ponto se os campos variáveis não foram lidos.
-        printf("Erro ao ler os campos variáveis.\n");
-        ApagarRegistro(&reg);
-        return NULL;
-    }
-    
-    return reg;
-}
-
-void RemoverRegistro(FILE *arquivo, CABECALHO *c, REGISTRO *reg) {
-    if (arquivo == NULL || reg == NULL) {
-        printf("Registro ou arquivo nulos na remoção do registro.\n");
-        DispararErro(ErroPonteiroInvalido());
-        return;
-    }
-
-    // Salvar dados a serem mantidos no registrador
-    // e faz o ajuste do lixo decorrente dos dados antigos.
-    reg->removido = '1';
-    reg->prox = c->topo;
-    c->topo = ftell(arquivo);
-    c->nroRegArq--;
-    c->nroRegRem++;
-    EscreverRegistro(&arquivo, reg);
-    return;
-}
-
-REGISTRO *AtualizarRegistro(REGISTRO *regAtual,CRITERIO *novosDados){
-    if(regAtual == NULL) DispararErro(ErroPonteiroInvalido());
-
-    REGISTRO *regAtualizado = CriarRegistroVazio();
-
-    /* Atualizar campos que foram inicializados */
-    if (novosDados->temIdAttack) 
-        regAtualizado->idAttack = novosDados->criterios->idAttack;
-    else 
-        regAtualizado->idAttack = regAtual->idAttack;
-
-    if (novosDados->temYear) 
-        regAtualizado->year = novosDados->criterios->year;
-    else 
-        regAtualizado->year = regAtual->year;
-
-    if (novosDados->temFinancialLoss) 
-        regAtualizado->financialLoss = novosDados->criterios->financialLoss;
-    else 
-        regAtualizado->financialLoss = regAtual->financialLoss;
-     
-    /* Atualizar Campos das Strings */
-
-    // Ler campo country
-    if (novosDados->temCountry) 
-        _copiarCampoVariavel(&(regAtualizado->country),
-                            &(novosDados->criterios->country));
-    else
-        _copiarCampoVariavel(&(regAtualizado->country), &(regAtual->country));
-
-    if(regAtualizado->country != NULL)    
-        regAtualizado->tamanhoRegistro += strlen(regAtualizado->country) + 2;
-
-    // Ler campo attackType 
-    if (novosDados->temAttackType) 
-        _copiarCampoVariavel(&(regAtualizado->attackType), 
-                            &(novosDados->criterios->attackType));
-    else
-        _copiarCampoVariavel(&(regAtualizado->attackType), &(regAtual->attackType));
-
-    if(regAtualizado->attackType != NULL)    
-        regAtualizado->tamanhoRegistro += strlen(regAtualizado->attackType) + 2;
-    
-    // Ler campo targetIndustry
-    if (novosDados->temTargetIndustry) 
-        _copiarCampoVariavel(&(regAtualizado->targetIndustry),
-                            &(novosDados->criterios->targetIndustry));
-    else
-        _copiarCampoVariavel(&(regAtualizado->targetIndustry), &(regAtual->targetIndustry));
-
-    if(regAtualizado->targetIndustry != NULL)    
-        regAtualizado->tamanhoRegistro += strlen(regAtualizado->targetIndustry) + 2;
-
-    // Ler campo de defenseMechanism
-    if (novosDados->temDefenseMechanism) 
-        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), 
-                            &(novosDados->criterios->defenseMechanism));
-    else
-        _copiarCampoVariavel(&(regAtualizado->defenseMechanism), &(regAtual->defenseMechanism));
-
-    if(regAtualizado->defenseMechanism != NULL)    
-        regAtualizado->tamanhoRegistro += strlen(regAtualizado->defenseMechanism) + 2;
-    
-    return regAtualizado;
-}
 
