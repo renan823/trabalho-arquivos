@@ -1,8 +1,6 @@
 #ifndef CABECALHO_H_
     #define CABECALHO_H_
 
-    #define INCONSISTENTE '0'
-    #define CONSISTENTE '1'
     #define TAM_HEAD 276
     #define TOPO 1
 

@@ -9,7 +9,6 @@
 
 #define MANTER_FIXO -2
 #define MSG_VAZIO "NADA CONSTA"
-#define LIXO '$'
 
 /* Protótipos */
 void _ajustarLixo(char *campoVariavel);

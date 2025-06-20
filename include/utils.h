@@ -1,5 +1,9 @@
 #ifndef UTILS_H_
     #define UTILS_H_
+
+    #define INCONSISTENTE '0'
+    #define CONSISTENTE '1'
+    #define LIXO '$'
     
     #include<stdio.h>
     #include<cabecalho.h>

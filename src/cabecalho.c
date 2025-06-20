@@ -1,6 +1,7 @@
 #include "cabecalho.h"
 
 #include "erros.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
