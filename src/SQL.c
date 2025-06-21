@@ -4,6 +4,7 @@
 #include "SQL.h"
 #include "erros.h"
 #include "registro.h"
+#include "utils.h"
 
 /* Protótipos */
 char *_PegarLinha(char **buffer, int tamBuffer,FILE *arquivoAberto);

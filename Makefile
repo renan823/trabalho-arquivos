@@ -12,7 +12,7 @@ FLAGS = -Wall -std=c99 -pedantic -I$(INCLUDE)
 APP = programaTrab
 
 # All .o files 
-OBJECTS = cabecalho.o registro.o erros.o main.o utils.o criterio.o SQL.o
+OBJECTS = cabecalho.o registro.o erros.o main.o utils.o criterio.o SQL.o indice.o
 
 all: $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) -o $(APP)
@@ -37,6 +37,9 @@ criterio.o:
 
 SQL.o:
 	$(CC) $(FLAGS) -c $(SOURCE)/SQL.c -o SQL.o
+
+indice.o:
+	$(CC) $(FLAGS) -c $(SOURCE)/indice.c -o indice.o
 
 run:
 	./$(APP)

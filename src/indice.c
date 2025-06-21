@@ -26,7 +26,7 @@ CABECALHO_INDICE *CriarCabecalhoIndicePadrão(void) {
         c->noRaiz = -1;
         c->proxRRN = 0;
         c->nroNos = 0;
-        memcpy(&c->lixo, LIXO, 31);
+        memset(&c->lixo, LIXO, 31);
     }
 
     return c;
@@ -288,7 +288,7 @@ Busca recursivamente o nó do índice que possui (ou deveria possuir) a dada cha
 Inicia a busca no rrn especificado (por padrão, começa no nó raiz)
 Salva a posição da chave e o rrn do nó nos ponteiros passados como parâmetro.
 */
-bool *_BuscarNo(FILE **arquivo, int chave, int rrn, int *rrn_achou, int *pos_achou) {
+bool _BuscarNo(FILE **arquivo, int chave, int rrn, int *rrn_achou, int *pos_achou) {
     // Ponteiro nulo, sem nó filho
     if (rrn == -1) {
         return false;
@@ -307,7 +307,7 @@ bool *_BuscarNo(FILE **arquivo, int chave, int rrn, int *rrn_achou, int *pos_ach
     }
 
     // Caso não tenha encontrado, guia para o próximo nó (pos_achou)
-    rrn = _ProxNo(no, pos_achou);
+    rrn = _ProxNo(no, *pos_achou);
 
     // Liberar memória
     ApagarNoIndice(&no);
@@ -318,15 +318,15 @@ bool *_BuscarNo(FILE **arquivo, int chave, int rrn, int *rrn_achou, int *pos_ach
 /*
 Executa a função de split da arvore B no índice.
 */
-void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVIDO *promo, int rrn, NO_INDICE *atual, NO_INDICE *novo) {
+void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVIDO *promo, int rrn, NO_INDICE *atual, NO_INDICE **novo) {
     // Armazenar estados
     int chaves[3] = { atual->C1, atual->C2, -1};
     int offsets[3] = { atual->Pr1, atual->Pr2, -1 };
     int ptrs[MAX_PTRS + 2] = { atual->P1, atual->P2, atual->P3, -1, -1 };
 
     // Ordenar e inserir nova chave na lista
-    int i = MAX_CHAVES;
-    for (i; chave < chaves[i-1] && i > 0; i--) {
+    int i;
+    for (i = MAX_CHAVES; chave < chaves[i-1] && i > 0; i--) {
         chaves[i] = chaves[i-1];
         offsets[i] = offsets[i-1];
         ptrs[i+1] = ptrs[i];
@@ -337,16 +337,20 @@ void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVI
     ptrs[i+1] = rrn;
 
     // Inicializar novo nó
-    novo = CriarNoIndice(INTERMEDIARIO);
+    *novo = CriarNoIndice(INTERMEDIARIO);
     
     // Ajustar valores
     atual->C1 = chaves[0];
     atual->P1 = ptrs[0];
     atual->Pr1 = offsets[0];
 
-    novo->C1 = chaves[2];
-    novo->P1 = ptrs[2];
-    novo->Pr1 = offsets[2];
+    (*novo)->C1 = chaves[2];
+    (*novo)->Pr1 = offsets[2];
+    (*novo)->P1 = ptrs[2];
+    (*novo)->P2 = ptrs[3];
+    (*novo)->C2 = -1;
+    (*novo)->Pr2 = -1;
+    (*novo)->P3 = -1;
 
     promo->rrn = c->proxRRN;
     promo->chave = chaves[1];
@@ -354,8 +358,6 @@ void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVI
 
     // Ajustar cabeçalho
     c->proxRRN++;
-
-    // Ajustar Ptrs para nós
 }
 
 /*
@@ -394,11 +396,10 @@ bool _InserirChave(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, 
         return false;
     } else {
         NO_INDICE *novo = NULL;
-        _Split(arquivo, c, chave, offset, promo, 0, no, novo);
+        _Split(arquivo, c, chave, offset, promo, 0, no, &novo);
 
-        EscreverNoIndice(arquivo, rrn, no);
-        EscreverNoIndice(arquivo, promo->rrn, novo);
-
+        EscreverNoIndice(arquivo, no, rrn);
+        EscreverNoIndice(arquivo, novo, promo->rrn);
         ApagarNoIndice(&no);
         ApagarNoIndice(&novo);
 
@@ -454,15 +455,15 @@ void AdicionarChave(FILE **arquivo, int chave, long offset) {
 
     // Atualizar cabeçalho
     c->status = CONSISTENTE;
-    EscreverCabecalho(arquivo, c);
-    ApagarCabecalho(&c);
+    EscreverCabecalhoIndice(arquivo, c);
+    ApagarCabecalhoIndice(&c);
 }
 
 /*
 Remove a chave informada e retorna o offset do arquivo de dados.
 */
 long RemoverChave(FILE **arquivo, int chave) {
-
+    return -1;
 }
 
 
