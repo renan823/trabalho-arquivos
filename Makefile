@@ -12,10 +12,10 @@ FLAGS = -Wall -std=c99 -pedantic -I$(INCLUDE)
 APP = programaTrab
 
 # All .o files 
-OBJECTS = cabecalho.o registro.o erros.o main.o utils.o criterio.o SQL.o indice.o
+OBJECTS = cabecalho.o registro.o erros.o utils.o criterio.o SQL.o indice.o
 
-all: $(OBJECTS)
-	$(CC) $(FLAGS) $(OBJECTS) -o $(APP)
+all: $(OBJECTS) main.o
+	$(CC) $(FLAGS) $(OBJECTS) main.o -o $(APP)
 
 cabecalho.o: 
 	$(CC) $(FLAGS) -c $(SOURCE)/cabecalho.c -o cabecalho.o
@@ -45,4 +45,11 @@ run:
 	./$(APP)
 
 clean:
-	-rm *.o $(APP)
+	-rm *.o $(APP) indice.bin
+
+indice_test.o:
+	gcc $(FLAGS) -c $(SOURCE)/indice_test.c
+
+test: $(OBJECTS) indice_test.o
+	$(CC) $(FLAGS) indice_test.o $(OBJECTS) -o test
+	
