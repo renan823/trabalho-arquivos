@@ -20,6 +20,8 @@ CABECALHO_INDICE *CriarCabecalhoIndicePadrao(void) {
         c->proxRRN = 0;
         c->nroNos = 0;
         memset(&c->lixo, LIXO, 31);
+    } else {
+        DispararErro(ErroAlocacaoMemoria());
     }
 
     return c;
@@ -42,6 +44,7 @@ Lê o cabeçalho do arquivo de índice
 */
 CABECALHO_INDICE *LerCabecalhoIndice(FILE **arquivo) {
     if (*arquivo == NULL) {
+        DispararErro(ErroPonteiroInvalido());
         return NULL;
     }
 
@@ -56,6 +59,8 @@ CABECALHO_INDICE *LerCabecalhoIndice(FILE **arquivo) {
         fread(&(c->proxRRN), sizeof(int), 1, *arquivo);
         fread(&(c->nroNos), sizeof(int), 1, *arquivo);
         fread(c->lixo, sizeof(char), 31, *arquivo);
+    } else {
+        DispararErro(ErroAlocacaoMemoria());
     }
 
     return c;
@@ -389,7 +394,14 @@ bool _BuscarNo(FILE **arquivo, int chave, int rrn, int *rrn_achou, int *pos_acho
 /*
 Executa a função de split da arvore B no índice.
 */
-void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVIDO *promo, int rrn, NO_INDICE *atual, NO_INDICE **novo) {
+void _Split(FILE **arquivo, 
+            CABECALHO_INDICE *c, 
+            int chave, long offset, 
+            PROMOVIDO *promo, 
+            int rrn, NO_INDICE 
+            *atual, 
+            NO_INDICE **novo) 
+{
     int chaves[MAX_CHAVES + 1] = { atual->C1, atual->C2, chave };
     long offsets[MAX_CHAVES + 1] = { atual->Pr1, atual->Pr2, offset };
     int ptrs[MAX_PTRS + 1] = { atual->P1, atual->P2, atual->P3, rrn };
@@ -460,7 +472,13 @@ void _Split(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, PROMOVI
 Busca a posição e insere um nova chave no indice.
 Caso seja necessário, um split é feito
 */
-bool _InserirChave(FILE **arquivo, CABECALHO_INDICE *c, int chave, long offset, int rrn, PROMOVIDO *promo) {
+bool _InserirChave(FILE **arquivo, 
+                CABECALHO_INDICE *c, 
+                int chave, 
+                long offset, 
+                int rrn, 
+                PROMOVIDO *promo) 
+{
     if (rrn == -1) {
         // Caso base: nó filho inexistente, deve criar nova folha promovendo chave para o pai
         promo->chave = chave;
