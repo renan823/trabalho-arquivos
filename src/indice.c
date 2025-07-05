@@ -479,3 +479,91 @@ void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *r
     return;   
 }
 
+void AtualizarRegistroDadoIndice(FILE *arquivoDados,
+                                FILE *arquivoIndices,
+                                CRITERIO *criterio, 
+                                CRITERIO *valoresAtualizados)
+{
+    // Se arquivo nulo, encerra execução.
+    if(arquivoDados == NULL || arquivoIndices) DispararErro(ErroArquivoInvalido());
+
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoDados, 0, SEEK_SET);
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoIndices, 0, SEEK_SET);
+
+    char byteAtual;
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivoIndices);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return; 
+    }
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivoDados);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return; 
+    }
+
+    ARVB *arvb = CriarArvoreB(arquivoIndices);
+
+    if(criterio->temIdAttack) {
+        // Encontrar offset do registro a ser atualizado
+        long int offset = BuscarArvoreB(arvb, criterio->criterios->idAttack);
+        
+        // Ler e atualizar registro
+        CABECALHO *c = LerCabecalho(&arquivoDados);
+
+        fseek(arquivoDados, offset, SEEK_SET);
+        REGISTRO *reg = LerRegistro(arquivoDados);
+        offset = UPDATE(arquivoDados, c, valoresAtualizados, reg); 
+        
+        // Verificar se houve mudança do offset
+        if(offset != -1) AtualizarOffsetArvoreB(arvb, reg->idAttack, offset);
+
+        // Salvar dado atualizados
+        c->status = CONSISTENTE;
+        EscreverCabecalho(&arquivoDados, c);
+
+        // Liberar memória alocada
+        ApagarRegistro(&reg);
+        ApagarCabecalho(&c);
+    } else {
+        AtualizarRegistroDadoCriterio(arquivoDados, criterio, valoresAtualizados);
+    }
+
+    // Apagar árvore
+    ApagarArvoreB(&arvb);
+   
+    return;
+}
+
+void AtualizarOffsetArvoreB(ARVB *arvb, int chave, long int offset){
+    if(arvb == NULL) DispararErro(ErroPonteiroInvalido());
+    
+    int rrn = arvb->c_arvb->noRaiz; 
+    
+    while(rrn != -1) {
+        // Carregar nó atual na memória
+        NO *no = _LerNo(arvb, rrn);
+        // Buscar possível posição da chave
+        int i = 0;
+        while(i < no->nroChaves && chave >= no->chaves[i]) i++;
+
+        // Verificar se a chave foi encontrada
+        if(i > 0 && chave == no->chaves[i - 1]) {
+            no->offsets[i - 1] = offset;
+            _EscreverNo(arvb, no, rrn);
+            rrn = -1;
+        // Caso contrário, continua-se a busca
+        } else {
+            rrn = no->filhos[i];
+        }
+        // Liberar memória
+        _ApagarNo(&no);
+    }
+}
+
+    
+

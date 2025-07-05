@@ -291,7 +291,7 @@ void FUNCIONALIDADE6(void){
     // Abrir arquivo de entrada para leitura e escrita
     FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
 
-    // Quantidades de remoções a serem realizadas
+    // Quantidades de atualizações a serem realizadas
     int quantUpdate;
     scanf("%d\n", &quantUpdate);
 
@@ -472,6 +472,61 @@ void FUNCIONALIDADE10(void){
             InserirRegistroIndice(arquivoDados, arquivoIndices, reg);
             
             ApagarRegistro(&reg);
+        }
+        // Fechar arquivo
+        fclose(arquivoDados);
+        arquivoDados = NULL;
+        fclose(arquivoIndices);
+        arquivoDados = NULL;
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoDados);
+        binarioNaTela(nomeArquivoIndice);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoDados);
+    nomeArquivoDados = NULL;
+    free(nomeArquivoIndice);
+    nomeArquivoIndice = NULL;
+
+    return;
+}
+
+void FUNCIONALIDADE11(void){
+    // Ler nome do arquivo de dados.
+    char *nomeArquivoDados = LerString();
+    // Ler nome do arquivo de índice.
+    char *nomeArquivoIndice = LerString();
+
+    // Abrir arquivos de entrada
+    FILE *arquivoDados = fopen(nomeArquivoDados, "rb+");
+    FILE *arquivoIndices = fopen(nomeArquivoIndice, "rb+");
+
+    // Quantidades de atualizações a serem realizadas
+    int quantUpdate;
+    scanf("%d\n", &quantUpdate);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantUpdate--){
+            // Le os criterios a serem avaliados
+            CRITERIO *criterio = DefinirCriterio();
+            CRITERIO *valoresAtualizados = DefinirCriterio();
+
+            // Atualizar registros
+            AtualizarRegistroDadoIndice(arquivoDados,
+                                        arquivoIndices,
+                                        criterio, 
+                                        valoresAtualizados);
+           
+            // Apagar registro criterio
+            ApagarCriterio(&criterio);
+            ApagarCriterio(&valoresAtualizados);
         }
         // Fechar arquivo
         fclose(arquivoDados);

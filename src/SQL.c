@@ -271,12 +271,17 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
     return;
 }
 
-/* Atualiza o registro e o cabecalho */
-void UPDATE(FILE *arquivo, 
+/* 
+Atualiza o registro e o cabecalho 
+Retorna -1 caso não mude o offset,
+ou o offset atual do registro
+*/
+long int UPDATE(FILE *arquivo, 
             CABECALHO *c, 
             CRITERIO *valoresAtualizados, 
             REGISTRO *regBuscado
 ) {
+    long int offsetInsercao = -1;
     // Atualizar registro encontrado, guardando o tamanho do desse registro.
     int espacoDisponivel = regBuscado->tamanhoRegistro;
     REGISTRO *regAtualizado = CriarRegistroAtualizado(regBuscado, valoresAtualizados);
@@ -295,11 +300,13 @@ void UPDATE(FILE *arquivo,
         DELETE(arquivo, c, regBuscado);
         // Inserir registro atualizado
         INSERT(arquivo, c, regAtualizado);
+        offsetInsercao = ftell(arquivo) - (regAtualizado->tamanhoRegistro + 5);
+
         fseek(arquivo, byteAtual, SEEK_SET);
     }
 
     ApagarRegistro(&regAtualizado);
-    return;
+    return offsetInsercao;
 }
 
 /* Retorna tamanho em bytes da linha a ser lida(0 caso chegue no final) */

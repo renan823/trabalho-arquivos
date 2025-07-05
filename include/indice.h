@@ -44,10 +44,17 @@
     void ApagarArvoreB(ARVB **arvb);
     void InserirArvoreB(ARVB *arvb, int chave, long int offset);
     long int BuscarArvoreB(ARVB *arvb, int chave);
+    void AtualizarOffsetArvoreB(ARVB *arvb, int chave, long int offset);
+
 
     void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida);
     void ExibirRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices, int indice);
     void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *reg);
-
+    void AtualizarRegistroDadoIndice(FILE *arquivoDados,
+                                    FILE *arquivoIndices,
+                                    CRITERIO *criterio, 
+                                    CRITERIO *valoresAtualizados);
+                                
+           
 
 #endif

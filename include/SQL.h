@@ -23,7 +23,7 @@
 
     /* Atualização */
     void AtualizarRegistroDadoCriterio(FILE *arquivo, CRITERIO *crit, CRITERIO *valoresAtualizados);
-    void UPDATE(FILE *arquivo, CABECALHO *c, CRITERIO *valoresAtualizados, REGISTRO *regBuscado);
+    long int UPDATE(FILE *arquivo, CABECALHO *c, CRITERIO *valoresAtualizados, REGISTRO *regBuscado);
 
 
 #endif
