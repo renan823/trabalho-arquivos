@@ -319,15 +319,19 @@
 #include <stdio.h>
 
 int main(void) {
-    FILE *arquivo = fopen("test.bin", "rb+");
+    FILE *arquivo = fopen("test.bin", "wb+");
+
+    CABECALHO_ARVOREB *c = CriarCabecalhoIndicePadrao();
+    EscreverCabecalhoIndice(&arquivo, c);
+    ApagarCabecalhoIndice(&c);
 
     ARVB *arvb = CriarArvoreB(arquivo);
     printf("Árvore B criada.\n");
     // Inserção básica
     InserirArvoreB(arvb, 1, 100);
-    // InserirArvoreB(arvb, 5, 500);
-    // InserirArvoreB(arvb, 17, 1700);
-    // InserirArvoreB(arvb, 230, 23000);
+    InserirArvoreB(arvb, 5, 500);
+    InserirArvoreB(arvb, 17, 1700);
+    InserirArvoreB(arvb, 230, 23000);
     // InserirArvoreB(arvb, 53, 5300);
     // InserirArvoreB(arvb, 79, 7900);
 

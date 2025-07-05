@@ -14,6 +14,7 @@ NO *_CriarNo(int tipo);
 void _ApagarNo(NO **no);
 NO *_LerNo(ARVB *arvb, int rrn);
 void _EscreverNo(ARVB *arvb, NO *no, int rrn);
+void _ImprimirNo(NO *no);
 
 NO *_InserirArvoreNo(ARVB *arvb, int rrn, int chave, long int offset);
 NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo);
@@ -23,6 +24,8 @@ ARVB *CriarArvoreB(FILE *arquivo) {
     if(arvb == NULL) DispararErro(ErroAlocacaoMemoria());
 
     arvb->c_arvb = LerCabecalhoIndice(&arquivo);
+
+    arvb->arq_arvb = arquivo;
 
     // Caso árvore vazia, criar primeiro nó.
     if(arvb->c_arvb->nroNos == 0) {
@@ -37,13 +40,11 @@ ARVB *CriarArvoreB(FILE *arquivo) {
         _ApagarNo(&raiz);
     }
 
-    arvb->arq_arvb = arquivo;
-
     return arvb;
 }
 
 void InserirArvoreB(ARVB *arvb, int chave, long int offset) {
-    printf("Chave: %d\n", chave);
+    printf("Inserir chave: %d\n", chave);
     if(arvb == NULL) DispararErro(ErroPonteiroInvalido()); 
 
     NO *promovido = _InserirArvoreNo(arvb, arvb->c_arvb->noRaiz, chave, offset);
@@ -81,15 +82,15 @@ NO *_InserirArvoreNo(ARVB *arvb, int rrn, int chave, long int offset) {
         no->chaves[i + 1] = chave;  // insere chave k em x
         no->offsets[i + 1] = offset;  
         no->nroChaves = no->nroChaves + 1;     // agora x tem mais 1 chave
-        
+
         // Split em nó folha
-        if(no->nroChaves == MAX_CHAVES) {
+        if(no->nroChaves > MAX_CHAVES) {
             promovido = _Split(arvb, no, rrn, FOLHA);
         }
     } else {
         // Continuar busca pela folha a ser inserida
         int i = 0;
-        while(i < MAX_CHAVES && chave < no->chaves[i]) i++;
+        while(i < no->nroChaves && chave >= no->chaves[i]) i++;
         promovido = _InserirArvoreNo(arvb, no->filhos[i], chave, offset);
         // Caso houver promoção, inseri-lo no nó.
         if(promovido != NULL) {
@@ -98,7 +99,7 @@ NO *_InserirArvoreNo(ARVB *arvb, int rrn, int chave, long int offset) {
             no->filhos[no->nroChaves + 1] = no->filhos[no->nroChaves];
             for(int j = no->nroChaves - 1; j >= i; j--) {
                 no->chaves[j + 1] = no->chaves[j];
-                no->filhos[j + 1] = no->chaves[j];
+                no->filhos[j + 1] = no->filhos[j];
             }
 
             // Inserir novo promovido.
@@ -111,11 +112,12 @@ NO *_InserirArvoreNo(ARVB *arvb, int rrn, int chave, long int offset) {
         }
 
         // Split em nó intermediário
-        if(no->nroChaves == MAX_CHAVES) {
+        if(no->nroChaves > MAX_CHAVES) {
             promovido = _Split(arvb, no, rrn, INTERMEDIARIO);
         }
     }
 
+    _ImprimirNo(no);
     _EscreverNo(arvb, no, rrn);
     _ApagarNo(&no);
     no = NULL;
@@ -132,13 +134,14 @@ NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo) {
     // novo nó à direita
     novoNO->filhos[0] = no->filhos[meio + 1];
     no->filhos[meio + 1] = -1;
-    for(int j = meio + 1; j <= MAX_CHAVES; j++) {
-        // Preenchendo novo nó.
+    int k = 1;
+    for (int j = meio + 1; j <= MAX_CHAVES; j++, k++) {
         novoNO->chaves[j - (meio + 1)] = no->chaves[j];
         novoNO->offsets[j - (meio + 1)] = no->offsets[j];
-        novoNO->filhos[j - meio] = no->filhos[j + 1];
+        novoNO->filhos[k] = no->filhos[j + 1];
         novoNO->nroChaves++;
-        // Limpando espaço.
+
+        // Limpando no original
         no->chaves[j] = -1;
         no->offsets[j] = -1;
         no->filhos[j + 1] = -1;
@@ -157,6 +160,7 @@ NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo) {
     no->offsets[meio] = -1;
     no->nroChaves--;
 
+    _ImprimirNo(novoNO);
     _EscreverNo(arvb, novoNO, arvb->c_arvb->proxRRN - 1);
     _ApagarNo(&novoNO);
 
@@ -196,12 +200,14 @@ NO *_CriarNo(int tipo) {
         no->tipoNo = tipo;
         no->nroChaves = 0;
 
-        for(int i = 0; i < MAX_CHAVES; i++) {
+        // Inicializa os espaços + extra
+        // 1 extra no offset, chave e filhos.
+        for(int i = 0; i <= MAX_CHAVES; i++) {
             no->chaves[i] = -1;
             no->filhos[i] = -1;
             no->offsets[i] = -1;
         }
-        no->offsets[MAX_CHAVES] = -1;
+        no->filhos[MAX_CHAVES + 1] = -1;
         
     }
 
@@ -263,6 +269,7 @@ void _EscreverNo(ARVB *arvb, NO *no, int rrn) {
     }
 
     long int offset = _OffsetNo(rrn);
+
     // Mover para a posição de inserção do nó
     fseek(arvb->arq_arvb, offset, SEEK_SET);
 
@@ -276,5 +283,16 @@ void _EscreverNo(ARVB *arvb, NO *no, int rrn) {
         fwrite(&(no->offsets[i]), sizeof(long), 1, arvb->arq_arvb);
     }
     fwrite(&(no->filhos[MAX_CHAVES]), sizeof(int), 1, arvb->arq_arvb);
+}
 
+void _ImprimirNo(NO *no) {
+    printf("\n\nNó da árvore B:\n");
+    printf("Tipo do nó: %d\n", no->tipoNo);
+    printf("Número de chaves: %d\n", no->nroChaves);
+    for(int i = 0; i < no->nroChaves; i++){
+        printf("Filho %d: %d\n", i, no->filhos[i]);
+        printf("Chave %d: %d\n", i, no->chaves[i]);
+        printf("Offsets %d: %ld\n", i, no->offsets[i]);
+    }
+    printf("Filho %d: %d\n\n", no->nroChaves, no->filhos[no->nroChaves]);
 }
