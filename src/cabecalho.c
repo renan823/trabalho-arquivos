@@ -200,17 +200,19 @@ CABECALHO_ARVOREB *LerCabecalhoIndice(FILE **arquivo) {
     // Garante início do arquivo
     fseek(*arquivo, 0, SEEK_SET);
 
-    CABECALHO_ARVOREB *c = (CABECALHO_ARVOREB*) malloc(sizeof(CABECALHO_ARVOREB));
-
-    if (c != NULL) {
-        fread(&(c->status), sizeof(char), 1, *arquivo);
+    CABECALHO_ARVOREB *c = CriarCabecalhoIndicePadrao();
+    if (c == NULL) DispararErro(ErroAlocacaoMemoria());
+        
+    if (fread(&(c->status), sizeof(char), 1, *arquivo)) {
         fread(&(c->noRaiz), sizeof(int), 1, *arquivo);
         fread(&(c->proxRRN), sizeof(int), 1, *arquivo);
         fread(&(c->nroNos), sizeof(int), 1, *arquivo);
         fread(c->lixo, sizeof(char), 31, *arquivo);
     } else {
-        DispararErro(ErroAlocacaoMemoria());
+        ApagarCabecalhoIndice(&c);
+        c = NULL;
     }
+
     
     return c;
 }

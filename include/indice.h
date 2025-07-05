@@ -13,6 +13,7 @@
 
     #include <stdio.h>
     #include "cabecalho.h"
+    #include "registro.h"
 
     // Struct auxiliar para as promoções de chave / offset / rrn
     typedef struct promovido PROMOVIDO;
@@ -42,10 +43,11 @@
     ARVB *CriarArvoreB(FILE *arquivo);
     void ApagarArvoreB(ARVB **arvb);
     void InserirArvoreB(ARVB *arvb, int chave, long int offset);
+    long int BuscarArvoreB(ARVB *arvb, int chave);
 
-    void AdicionarChaveIndice(FILE **arquivo, int chave, long offset);
-    long RemoverChaveIndice(FILE **arquivo, int chave);
-    long BuscarChaveIndice(FILE **arquivo, int chave);
+    void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida);
+    void ExibirRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices, int indice);
+    void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *reg);
 
-    void AbrirIndice(FILE **arquivo, char *nome);
+
 #endif
