@@ -16,51 +16,14 @@
     #include "registro.h"
     #include "fila.h"
 
-    // Struct auxiliar para as promoções de chave / offset / rrn
-    typedef struct promovido PROMOVIDO;
-    struct promovido {
-        int chave;
-        int offset;
-        int rrn;
-    };
-
-    typedef struct _no NO;
-    struct _no {
-        int tipoNo; // 4 bytes
-        int nroChaves; // 4 bytes
-        int chaves[MAX_CHAVES + 1];
-        long int offsets[MAX_CHAVES + 1];
-        int filhos[MAX_FILHOS + 1];
-    };
-
-    typedef struct _arvb ARVB;
-
-    struct _arvb
-    {
-        FILE *arq_arvb;
-        CABECALHO_ARVOREB *c_arvb;
-    };
-
-    ARVB *CriarArvoreB(FILE *arquivo);
-    void ApagarArvoreB(ARVB **arvb);
-    void InserirArvoreB(ARVB *arvb, int chave, long int offset);
-    long int BuscarArvoreB(ARVB *arvb, int chave);
-    void AtualizarOffsetArvoreB(ARVB *arvb, int chave, long int offset);
-
-
+    long OffsetNo(int rrn);    
     void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida);
     void ExibirRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices, int indice);
     void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *reg);
-
     void AtualizarRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices,
                                     int indice, CRITERIO *valoresAtualizados);
-
     FILA *RertornaIndicesDadoCriterio(FILE *arquivoDados,
                                     FILE *arquivoIndices,
                                     CRITERIO *criterio);
-
-    void BuscaEmProfundidade(ARVB *arvb, int rrn, 
-                            FILE *arquivoDados, CRITERIO *crit,
-                            int *vis, FILA *indices);
-                                           
+                                       
 #endif
