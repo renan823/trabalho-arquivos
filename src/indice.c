@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "cabecalho.h"
 #include "SQL.h"
+#include "criterio.h"
+#include "fila.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -481,11 +483,13 @@ void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *r
 
 void AtualizarRegistroDadoIndice(FILE *arquivoDados,
                                 FILE *arquivoIndices,
-                                CRITERIO *criterio, 
+                                int indice, 
                                 CRITERIO *valoresAtualizados)
 {
     // Se arquivo nulo, encerra execução.
-    if(arquivoDados == NULL || arquivoIndices) DispararErro(ErroArquivoInvalido());
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        DispararErro(ErroArquivoInvalido());
+    } 
 
     // Atualizar ponteiro do arquivo para o início
     fseek(arquivoDados, 0, SEEK_SET);
@@ -506,15 +510,17 @@ void AtualizarRegistroDadoIndice(FILE *arquivoDados,
         return; 
     }
 
+    // Criar árvore.
     ARVB *arvb = CriarArvoreB(arquivoIndices);
 
-    if(criterio->temIdAttack) {
-        // Encontrar offset do registro a ser atualizado
-        long int offset = BuscarArvoreB(arvb, criterio->criterios->idAttack);
-        
-        // Ler e atualizar registro
+    // Encontrar offset do registro a ser atualizado
+    long int offset = BuscarArvoreB(arvb, indice);
+    
+    if(offset != -1) {
+        // Ler cabeçalho
         CABECALHO *c = LerCabecalho(&arquivoDados);
 
+        // Ler e atualizar registro
         fseek(arquivoDados, offset, SEEK_SET);
         REGISTRO *reg = LerRegistro(arquivoDados);
         offset = UPDATE(arquivoDados, c, valoresAtualizados, reg); 
@@ -528,14 +534,11 @@ void AtualizarRegistroDadoIndice(FILE *arquivoDados,
 
         // Liberar memória alocada
         ApagarRegistro(&reg);
-        ApagarCabecalho(&c);
-    } else {
-        AtualizarRegistroDadoCriterio(arquivoDados, criterio, valoresAtualizados);
+        ApagarCabecalho(&c);    
     }
-
-    // Apagar árvore
+    
     ApagarArvoreB(&arvb);
-   
+
     return;
 }
 
@@ -565,5 +568,94 @@ void AtualizarOffsetArvoreB(ARVB *arvb, int chave, long int offset){
     }
 }
 
-    
+FILA *RertornaIndicesDadoCriterio(FILE *arquivoDados,
+                                FILE *arquivoIndices,
+                                CRITERIO *criterio)
+{
+    // Se arquivo nulo, encerra execução.
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        DispararErro(ErroArquivoInvalido());
+    } 
+
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoDados, 0, SEEK_SET);
+    // Atualizar ponteiro do arquivo para o início
+    fseek(arquivoIndices, 0, SEEK_SET);
+
+    char byteAtual;
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivoIndices);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return NULL; 
+    }
+    // Se o arquivo for inconsistente, Falha no processamento do arquivo. 
+    fread(&byteAtual, sizeof(char), 1, arquivoDados);
+    if(byteAtual == INCONSISTENTE){ 
+        DispararErro(ErroProcessamentoArquivo());
+        return NULL; 
+    }
+
+    // Prepara parâmetros para DFS
+    ARVB *arvb = CriarArvoreB(arquivoIndices);
+    int *visitados = (int*) calloc((arvb->c_arvb->nroNos), sizeof(int));
+    FILA *fila = fila_criar();
+    BuscaEmProfundidade(arvb,
+                        arvb->c_arvb->noRaiz,
+                        arquivoDados,
+                        criterio,
+                        visitados,
+                        fila);
+
+    // Liberar memória
+    ApagarArvoreB(&arvb);
+    free(visitados);
+    visitados = NULL;
+
+    // Retorna fila de indices.
+    return fila;
+}
+
+/* Guarda os indices dos nos buscados dado um critério */
+void BuscaEmProfundidade(ARVB *arvb, 
+                          int rrn, 
+                          FILE *arquivoDados,
+                          CRITERIO *crit,
+                          int *vis,
+                          FILA *indices) 
+{
+    if (rrn == -1 || vis[rrn]) return;
+
+    vis[rrn] = 1;
+    NO *no = _LerNo(arvb, rrn);
+
+    for (int i = 0; i < no->nroChaves; i++) {
+        // Visita filho à esquerda da chave i
+        if (no->filhos[i] != -1) {
+            BuscaEmProfundidade(arvb, no->filhos[i], arquivoDados, crit, vis, indices);
+        }
+
+        // Processa a chave i
+        if (no->chaves[i] != -1) {
+            fseek(arquivoDados, no->offsets[i], SEEK_SET);
+            REGISTRO *reg = LerRegistro(arquivoDados);
+            if (SelecionarPorCriterio(crit, reg)) {
+                fila_inserir(indices, no->chaves[i]);
+            }
+            ApagarRegistro(&reg);
+        }
+    }
+
+    // Visita o último filho
+    if (no->filhos[no->nroChaves] != -1) {
+        BuscaEmProfundidade(arvb, no->filhos[no->nroChaves], arquivoDados, crit, vis, indices);
+    }
+
+    _ApagarNo(&no);
+}
+
+
+
+
+   
 

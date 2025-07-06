@@ -5,6 +5,7 @@
 #include "criterio.h"
 #include "utils.h"
 #include "indice.h"
+#include "fila.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@ void FUNCIONALIDADE6(void);
 void FUNCIONALIDADE7(void);
 void FUNCIONALIDADE8(void);
 void FUNCIONALIDADE10(void);
+void FUNCIONALIDADE11(void);
 
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
@@ -53,6 +55,9 @@ int main(void) {
             break;
         case 10:
             FUNCIONALIDADE10();
+            break;
+        case 11:
+            FUNCIONALIDADE11();
             break;
         default:
             break;
@@ -400,7 +405,22 @@ void FUNCIONALIDADE8(void){
                                         arquivoIndices, 
                                         criterio->criterios->idAttack);
             } else {
-                ExibirRegistrosDadoCriterio(arquivoDados, criterio);
+                FILA *indices = RertornaIndicesDadoCriterio(arquivoDados,
+                                                            arquivoIndices,
+                                                            criterio);
+                if(fila_vazia(indices)) DispararErro(ErroRegistroInexistente());
+                else {
+                    while(!fila_vazia(indices)){
+                        int indice = fila_remover(indices);
+                        
+                        ExibirRegistroDadoIndice(arquivoDados, 
+                                                arquivoIndices, 
+                                                indice);
+                        
+                    }
+                }
+
+                fila_apagar(&indices);
             }
 
             printf("**********\n");
@@ -518,12 +538,29 @@ void FUNCIONALIDADE11(void){
             CRITERIO *criterio = DefinirCriterio();
             CRITERIO *valoresAtualizados = DefinirCriterio();
 
-            // Atualizar registros
-            AtualizarRegistroDadoIndice(arquivoDados,
-                                        arquivoIndices,
-                                        criterio, 
-                                        valoresAtualizados);
-           
+            if(criterio->temIdAttack){
+                // Atualizar registros
+                AtualizarRegistroDadoIndice(arquivoDados,
+                                            arquivoIndices,
+                                            criterio->criterios->idAttack, 
+                                            valoresAtualizados);
+            } else {
+                FILA *indices = RertornaIndicesDadoCriterio(arquivoDados,
+                                                            arquivoIndices,
+                                                            criterio);
+                while(!fila_vazia(indices)){
+                    int indice = fila_remover(indices);
+
+                    // Atualizar registros
+                    AtualizarRegistroDadoIndice(arquivoDados,
+                                                arquivoIndices,
+                                                indice, 
+                                                valoresAtualizados);
+                }
+
+                fila_apagar(&indices);
+            }
+
             // Apagar registro criterio
             ApagarCriterio(&criterio);
             ApagarCriterio(&valoresAtualizados);

@@ -14,6 +14,7 @@
     #include <stdio.h>
     #include "cabecalho.h"
     #include "registro.h"
+    #include "fila.h"
 
     // Struct auxiliar para as promoções de chave / offset / rrn
     typedef struct promovido PROMOVIDO;
@@ -50,11 +51,16 @@
     void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida);
     void ExibirRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices, int indice);
     void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *reg);
-    void AtualizarRegistroDadoIndice(FILE *arquivoDados,
-                                    FILE *arquivoIndices,
-                                    CRITERIO *criterio, 
-                                    CRITERIO *valoresAtualizados);
-                                
-           
 
+    void AtualizarRegistroDadoIndice(FILE *arquivoDados, FILE *arquivoIndices,
+                                    int indice, CRITERIO *valoresAtualizados);
+
+    FILA *RertornaIndicesDadoCriterio(FILE *arquivoDados,
+                                    FILE *arquivoIndices,
+                                    CRITERIO *criterio);
+
+    void BuscaEmProfundidade(ARVB *arvb, int rrn, 
+                            FILE *arquivoDados, CRITERIO *crit,
+                            int *vis, FILA *indices);
+                                           
 #endif

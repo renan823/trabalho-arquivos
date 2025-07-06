@@ -256,8 +256,8 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *regBuscado = NULL;
     while (c->nroRegArq != 0 &&
-        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) { 
-            
+        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {     
+        
         UPDATE(arquivo, c, valoresAtualizados, regBuscado);
         ApagarRegistro(&regBuscado);
         
