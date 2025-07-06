@@ -94,8 +94,8 @@ void FUNCIONALIDADE1(void){
         LerCsvParaBinario(arquivoEntrada, arquivoSaida);
 
         // Fechar arquivos de entrada e saída
-        fclose(arquivoEntrada);
-        fclose(arquivoSaida);
+        FecharArquivo(&arquivoEntrada);
+        FecharArquivo(&arquivoSaida);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -129,8 +129,7 @@ void FUNCIONALIDADE2(void) {
         // Imprimir todos os registros(não há critério).
         ExibirRegistrosDadoCriterio(arquivoEntrada, NULL);
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
     }
     // Liberar memória 
     free(nomeArquivoEntrada);
@@ -170,9 +169,7 @@ void FUNCIONALIDADE3(void){
             // Apagar registro filtro
             ApagarCriterio(&criterio);
         }
-        // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
     }   
 
     // Liberar memória 
@@ -211,8 +208,7 @@ void FUNCIONALIDADE4(void){
             ApagarCriterio(&criterio);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -273,8 +269,7 @@ void FUNCIONALIDADE5(void){
             ApagarRegistro(&reg);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -317,8 +312,7 @@ void FUNCIONALIDADE6(void){
             ApagarCriterio(&valoresAtualizados);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -360,8 +354,8 @@ void FUNCIONALIDADE7(void){
         CriarArquivoIndice(arquivoEntrada, arquivoSaida);
 
         // Fechar arquivos de entrada e saída
-        fclose(arquivoEntrada);
-        fclose(arquivoSaida);
+        FecharArquivo(&arquivoEntrada);
+        FecharArquivo(&arquivoSaida);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -393,6 +387,8 @@ void FUNCIONALIDADE8(void){
 
     // Verificar se arquivo de entrada existe
     if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
@@ -429,10 +425,8 @@ void FUNCIONALIDADE8(void){
             ApagarCriterio(&criterio);
         }
         // Fechar arquivo
-        fclose(arquivoDados);
-        arquivoDados = NULL;
-        fclose(arquivoIndices);
-        arquivoIndices = NULL;
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
     }   
 
     // Liberar memória 
@@ -460,6 +454,8 @@ void FUNCIONALIDADE10(void){
 
     // Verificar se arquivo de entrada existe
     if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
@@ -494,10 +490,8 @@ void FUNCIONALIDADE10(void){
             ApagarRegistro(&reg);
         }
         // Fechar arquivo
-        fclose(arquivoDados);
-        arquivoDados = NULL;
-        fclose(arquivoIndices);
-        arquivoDados = NULL;
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -530,6 +524,8 @@ void FUNCIONALIDADE11(void){
 
     // Verificar se arquivo de entrada existe
     if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
         // Dispara mensagem de erro
         DispararErro(ErroProcessamentoArquivo());
     } else {
@@ -566,10 +562,8 @@ void FUNCIONALIDADE11(void){
             ApagarCriterio(&valoresAtualizados);
         }
         // Fechar arquivo
-        fclose(arquivoDados);
-        arquivoDados = NULL;
-        fclose(arquivoIndices);
-        arquivoDados = NULL;
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin

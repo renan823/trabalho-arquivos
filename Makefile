@@ -56,3 +56,7 @@ indice_test.o:
 test: $(OBJECTS) indice_test.o
 	$(CC) $(FLAGS) indice_test.o $(OBJECTS) -o test
 	
+mem_test%: exec/%.in | results
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./programaTrab < $< 2>results/summary$*.log
+
+	

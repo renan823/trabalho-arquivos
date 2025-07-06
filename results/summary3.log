@@ -1,0 +1,14 @@
+==24943== Memcheck, a memory error detector
+==24943== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==24943== Using Valgrind-3.25.0 and LibVEX; rerun with -h for copyright info
+==24943== Command: ./programaTrab
+==24943== 
+==24943== 
+==24943== HEAP SUMMARY:
+==24943==     in use at exit: 0 bytes in 0 blocks
+==24943==   total heap usage: 21,767 allocs, 21,767 frees, 692,017 bytes allocated
+==24943== 
+==24943== All heap blocks were freed -- no leaks are possible
+==24943== 
+==24943== For lists of detected and suppressed errors, rerun with: -s
+==24943== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

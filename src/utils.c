@@ -87,6 +87,16 @@ char *LerStringComAspas(void){
 
 }
 
+// Fecha um arquivo verificando se é NULL
+void FecharArquivo(FILE **arquivo) {
+	if (*arquivo == NULL) {
+		return;
+	}
+
+	fclose(*arquivo);
+	*arquivo = NULL;
+}
+
 /*
 Função para imprimir dados salvos no arquivo em binário
 (util para comparar saida no run codes)
