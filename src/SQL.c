@@ -126,6 +126,10 @@ void RemoverRegistroDadoCriterio(FILE *arquivo, CRITERIO *crit) {
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *registroBuscado = NULL;
@@ -138,6 +142,7 @@ void RemoverRegistroDadoCriterio(FILE *arquivo, CRITERIO *crit) {
         if(crit->temIdAttack) break;
     }    
 
+    c->status = CONSISTENTE;
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
 
@@ -175,6 +180,10 @@ void InserirRegistro(FILE *arquivo, REGISTRO *reg) {
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     INSERT(arquivo, c, reg);
     
@@ -252,6 +261,10 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *regBuscado = NULL;
@@ -265,6 +278,7 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
         if(criterio->temIdAttack) break;
     }    
 
+    c->status = CONSISTENTE;
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
 

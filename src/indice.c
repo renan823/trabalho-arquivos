@@ -129,6 +129,10 @@ void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *r
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivoDados, c);
 
     INSERT(arquivoDados, c, reg);
 
@@ -145,6 +149,11 @@ void InserirRegistroIndice(FILE *arquivoDados, FILE *arquivoIndices, REGISTRO *r
     return;   
 }
 
+/* 
+Dado registro de dados e indices, 
+busca offset do indice passado o qual 
+será usado para atualizar registro.
+*/
 void AtualizarRegistroDadoIndice(FILE *arquivoDados,
                                 FILE *arquivoIndices,
                                 int indice, 
@@ -183,6 +192,11 @@ void AtualizarRegistroDadoIndice(FILE *arquivoDados,
     if(offset != -1) {
         // Ler cabeçalho
         CABECALHO *c = LerCabecalho(&arquivoDados);
+        
+        // Marcar arquivo de dados para 
+        // inconsistente durante manipulação
+        c->status = INCONSISTENTE;
+        EscreverCabecalho(&arquivoDados, c);
 
         // Ler e atualizar registro
         fseek(arquivoDados, offset, SEEK_SET);
