@@ -21,12 +21,11 @@ long OffsetNo(int rrn) {
     return ((rrn + 1) * TAM_REG_IND);
 }
 
-void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida){
+void CriarArquivoIndice(FILE *arquivoEntrada, FILE *arquivoSaida) {
     if(arquivoEntrada == NULL || arquivoSaida == NULL){
         DispararErro(ErroPonteiroInvalido());
     }
 
-    
     // Criar Árvore B
     ARVB *arvb = CriarArvoreB(arquivoSaida);
 

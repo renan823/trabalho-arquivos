@@ -68,10 +68,13 @@ ARVB *CriarArvoreB(FILE *arquivo) {
         arvb->c_arvb->noRaiz = 0;
         arvb->c_arvb->proxRRN++;
         arvb->c_arvb->nroNos++;
-        EscreverCabecalhoIndice(&arquivo, arvb->c_arvb);
+        // Iniciar árvore com raiz vazia
         _EscreverNo(arvb, raiz, 0);
         _ApagarNo(&raiz);
-    }
+    } 
+    // Marcar arquivo para inconsistente
+    arvb->c_arvb->status = INCONSISTENTE;
+    EscreverCabecalhoIndice(&arquivo, arvb->c_arvb);
 
     return arvb;
 }
@@ -248,6 +251,7 @@ void ApagarArvoreB(ARVB **arvb) {
     if(arvb == NULL || *arvb == NULL) return;
 
     if((*arvb)->c_arvb) {
+        (*arvb)->c_arvb->status = CONSISTENTE;
         EscreverCabecalhoIndice(&((*arvb)->arq_arvb), (*arvb)->c_arvb);
         ApagarCabecalhoIndice(&((*arvb)->c_arvb));
     }
