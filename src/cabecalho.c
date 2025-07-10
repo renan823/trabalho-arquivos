@@ -141,6 +141,7 @@ void EscreverCabecalho(FILE **arquivo, CABECALHO *c) {
     fwrite(c->descreveDefense, sizeof(char), 67, *arquivo);
 }
 
+
 /* 
 Função que libera espaço alocado par ao cabecalho na heap
 */
@@ -152,4 +153,101 @@ void ApagarCabecalho(CABECALHO **c){
     // Liberar memoria do cabecalho
     free(*c);
     *c = NULL; // Evita ponteiro selvagem
+}
+
+
+/*
+Cria um cabeçalho de indice vazio.
+*/
+CABECALHO_ARVOREB *CriarCabecalhoIndicePadrao(void) {
+    CABECALHO_ARVOREB *c = (CABECALHO_ARVOREB*) malloc(sizeof(CABECALHO_ARVOREB));
+
+    if (c != NULL) {
+        c->status = CONSISTENTE;
+        c->noRaiz = -1;
+        c->proxRRN = 0;
+        c->nroNos = 0;
+        memset(&c->lixo, LIXO, 31);
+    } else {
+        DispararErro(ErroAlocacaoMemoria());
+    }
+
+    return c;
+}
+
+/*
+Apaga o cabeçalho e libera a memória alocada.
+*/
+void ApagarCabecalhoIndice(CABECALHO_ARVOREB **c) {
+    if (c == NULL || *c == NULL) {
+        return;
+    }
+
+    free(*c);
+    *c = NULL;
+}
+
+/*
+Lê o cabeçalho do arquivo de índice
+*/
+CABECALHO_ARVOREB *LerCabecalhoIndice(FILE **arquivo) {
+    if (*arquivo == NULL) {
+        printf("Erro ler cabeçalho índice arquivo\n");
+        DispararErro(ErroPonteiroInvalido());
+        return NULL;
+    }
+
+    // Garante início do arquivo
+    fseek(*arquivo, 0, SEEK_SET);
+
+    CABECALHO_ARVOREB *c = CriarCabecalhoIndicePadrao();
+    if (c == NULL) DispararErro(ErroAlocacaoMemoria());
+        
+    if (fread(&(c->status), sizeof(char), 1, *arquivo)) {
+        fread(&(c->noRaiz), sizeof(int), 1, *arquivo);
+        fread(&(c->proxRRN), sizeof(int), 1, *arquivo);
+        fread(&(c->nroNos), sizeof(int), 1, *arquivo);
+        fread(c->lixo, sizeof(char), 31, *arquivo);
+    } else {
+        ApagarCabecalhoIndice(&c);
+        c = NULL;
+    }
+
+    
+    return c;
+}
+
+/*
+Escreve os dados do cabeçãho no arquivo de índice.
+*/
+void EscreverCabecalhoIndice(FILE **arquivo, CABECALHO_ARVOREB *c) {
+    if (*arquivo == NULL || c == NULL) {
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    // Garante início do arquivo
+    fseek(*arquivo, 0, SEEK_SET);
+
+    // Escrever dados
+    fwrite(&(c->status), sizeof(char), 1, *arquivo);
+    fwrite(&(c->noRaiz), sizeof(int), 1, *arquivo);
+    fwrite(&(c->proxRRN), sizeof(int), 1, *arquivo);
+    fwrite(&(c->nroNos), sizeof(int), 1, *arquivo);
+    fwrite(c->lixo, sizeof(char), 31, *arquivo);
+}
+
+void ImprimirCabecalhoIndice(CABECALHO_ARVOREB *c) {
+    if(c != NULL) {
+        printf("Cabeçalho árvore B:\n\n");
+        printf("Status: %d\n", c->status);
+        printf("Nó raiz: %d\n", c->noRaiz);
+        printf("Próximo RRN: %d\n", c->proxRRN);
+        printf("Número de nós: %d\n\n", c->nroNos);
+
+    } else {
+        printf("Cabeçalho nulo.\n");
+        DispararErro(ErroPonteiroInvalido());
+    }
+
+    return;
 }

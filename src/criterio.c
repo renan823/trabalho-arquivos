@@ -86,8 +86,9 @@ CRITERIO *DefinirCriterio(){
     return c;
 }
 
+// Verifica se o registro é valido dado critério
 bool SelecionarPorCriterio(CRITERIO* crit, REGISTRO* reg) {
-    if(reg->removido == REMOVIDO || reg == NULL) return false;
+    if(reg == NULL || reg->removido == REMOVIDO) return false;
     // Se não há critério e registro não removido e não nulo
     // o registro é valido.
     if(crit == NULL) return true;

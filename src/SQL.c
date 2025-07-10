@@ -126,6 +126,10 @@ void RemoverRegistroDadoCriterio(FILE *arquivo, CRITERIO *crit) {
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *registroBuscado = NULL;
@@ -138,6 +142,7 @@ void RemoverRegistroDadoCriterio(FILE *arquivo, CRITERIO *crit) {
         if(crit->temIdAttack) break;
     }    
 
+    c->status = CONSISTENTE;
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
 
@@ -175,6 +180,10 @@ void InserirRegistro(FILE *arquivo, REGISTRO *reg) {
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     INSERT(arquivo, c, reg);
     
@@ -252,12 +261,16 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
         DispararErro(ErroProcessamentoArquivo());
         return;
     }
+    // Marcar arquivo de dados para 
+    // inconsistente durante manipulação
+    c->status = INCONSISTENTE;
+    EscreverCabecalho(&arquivo, c);
 
     // Buscar registro sem filtro(todos os não removidos)
     REGISTRO *regBuscado = NULL;
     while (c->nroRegArq != 0 &&
-        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) { 
-            
+        (regBuscado = SELECT_WHERE(arquivo, criterio)) != NULL) {     
+        
         UPDATE(arquivo, c, valoresAtualizados, regBuscado);
         ApagarRegistro(&regBuscado);
         
@@ -265,18 +278,24 @@ void AtualizarRegistroDadoCriterio(FILE *arquivo,
         if(criterio->temIdAttack) break;
     }    
 
+    c->status = CONSISTENTE;
     EscreverCabecalho(&arquivo, c);
     ApagarCabecalho(&c);
 
     return;
 }
 
-/* Atualiza o registro e o cabecalho */
-void UPDATE(FILE *arquivo, 
+/* 
+Atualiza o registro e o cabecalho 
+Retorna -1 caso não mude o offset,
+ou o offset atual do registro
+*/
+long int UPDATE(FILE *arquivo, 
             CABECALHO *c, 
             CRITERIO *valoresAtualizados, 
             REGISTRO *regBuscado
 ) {
+    long int offsetInsercao = -1;
     // Atualizar registro encontrado, guardando o tamanho do desse registro.
     int espacoDisponivel = regBuscado->tamanhoRegistro;
     REGISTRO *regAtualizado = CriarRegistroAtualizado(regBuscado, valoresAtualizados);
@@ -295,11 +314,13 @@ void UPDATE(FILE *arquivo,
         DELETE(arquivo, c, regBuscado);
         // Inserir registro atualizado
         INSERT(arquivo, c, regAtualizado);
+        offsetInsercao = ftell(arquivo) - (regAtualizado->tamanhoRegistro + 5);
+
         fseek(arquivo, byteAtual, SEEK_SET);
     }
 
     ApagarRegistro(&regAtualizado);
-    return;
+    return offsetInsercao;
 }
 
 /* Retorna tamanho em bytes da linha a ser lida(0 caso chegue no final) */

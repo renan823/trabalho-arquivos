@@ -4,6 +4,8 @@
 #include "registro.h"
 #include "criterio.h"
 #include "utils.h"
+#include "indice.h"
+#include "fila.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +18,10 @@ void FUNCIONALIDADE3(void);
 void FUNCIONALIDADE4(void);
 void FUNCIONALIDADE5(void);
 void FUNCIONALIDADE6(void);
+void FUNCIONALIDADE7(void);
+void FUNCIONALIDADE8(void);
+void FUNCIONALIDADE10(void);
+void FUNCIONALIDADE11(void);
 
 int main(void) {
     // Ler funcionalidade selecionada e nome arquivo de entrada
@@ -40,6 +46,18 @@ int main(void) {
             break;
         case 6:
             FUNCIONALIDADE6();
+            break;
+        case 7:
+            FUNCIONALIDADE7();
+            break;
+        case 8:
+            FUNCIONALIDADE8();
+            break;
+        case 10:
+            FUNCIONALIDADE10();
+            break;
+        case 11:
+            FUNCIONALIDADE11();
             break;
         default:
             break;
@@ -76,8 +94,8 @@ void FUNCIONALIDADE1(void){
         LerCsvParaBinario(arquivoEntrada, arquivoSaida);
 
         // Fechar arquivos de entrada e saída
-        fclose(arquivoEntrada);
-        fclose(arquivoSaida);
+        FecharArquivo(&arquivoEntrada);
+        FecharArquivo(&arquivoSaida);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -111,8 +129,7 @@ void FUNCIONALIDADE2(void) {
         // Imprimir todos os registros(não há critério).
         ExibirRegistrosDadoCriterio(arquivoEntrada, NULL);
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
     }
     // Liberar memória 
     free(nomeArquivoEntrada);
@@ -152,9 +169,7 @@ void FUNCIONALIDADE3(void){
             // Apagar registro filtro
             ApagarCriterio(&criterio);
         }
-        // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
     }   
 
     // Liberar memória 
@@ -193,8 +208,7 @@ void FUNCIONALIDADE4(void){
             ApagarCriterio(&criterio);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -255,8 +269,7 @@ void FUNCIONALIDADE5(void){
             ApagarRegistro(&reg);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -278,7 +291,7 @@ void FUNCIONALIDADE6(void){
     // Abrir arquivo de entrada para leitura e escrita
     FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb+");
 
-    // Quantidades de remoções a serem realizadas
+    // Quantidades de atualizações a serem realizadas
     int quantUpdate;
     scanf("%d\n", &quantUpdate);
 
@@ -299,8 +312,7 @@ void FUNCIONALIDADE6(void){
             ApagarCriterio(&valoresAtualizados);
         }
         // Fechar arquivo
-        fclose(arquivoEntrada);
-        arquivoEntrada = NULL;
+        FecharArquivo(&arquivoEntrada);
 
         // Executar função fornecida para  
         // mostrar a saída do arquivo ataques.bin
@@ -313,3 +325,258 @@ void FUNCIONALIDADE6(void){
 
     return;
 }
+
+/*
+CREATE_INDEX:
+Função que recebe um arquivo de dados 
+e retorna um arquivo de índices.
+*/
+void FUNCIONALIDADE7(void){
+    // Ler nome dos arquivos de entrada e saída.
+    char *nomeArquivoEntrada = LerString();
+    char *nomeArquivoSaida = LerString();
+    // Abrir arquivos de entrada e saída
+    FILE *arquivoEntrada = fopen(nomeArquivoEntrada, "rb");
+
+    // Verificar se o arquivo de entrada existe
+    if(arquivoEntrada == NULL){
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        FILE *arquivoSaida = fopen(nomeArquivoSaida, "wb+");
+        
+        // Verifica se o arquivo foi criado
+        if(arquivoSaida == NULL){
+            // Dispara erro fatal
+            DispararErro(ErroCriarArquivo());
+        }
+        
+        CriarArquivoIndice(arquivoEntrada, arquivoSaida);
+
+        // Fechar arquivos de entrada e saída
+        FecharArquivo(&arquivoEntrada);
+        FecharArquivo(&arquivoSaida);
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoSaida);
+    }
+    // Liberar memória do nome dos arquivos
+    free(nomeArquivoEntrada);
+    nomeArquivoEntrada = NULL;
+    free(nomeArquivoSaida);
+    nomeArquivoSaida = NULL;
+
+    return;
+}
+
+void FUNCIONALIDADE8(void){
+    // Ler nome do arquivo de dados.
+    char *nomeArquivoDados = LerString();
+
+    // Ler nome do arquivo de índice.
+    char *nomeArquivoIndice = LerString();
+
+    // Abrir arquivos de entrada
+    FILE *arquivoDados = fopen(nomeArquivoDados, "rb");
+    FILE *arquivoIndices = fopen(nomeArquivoIndice, "rb");
+
+    // Quantidades de buscas a serem realizadas
+    int quantBuscas;
+    scanf("%d", &quantBuscas);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantBuscas--){
+            // Le os criterios a serem avaliados
+            CRITERIO *criterio = DefinirCriterio();
+
+            if(criterio->temIdAttack) {
+                ExibirRegistroDadoIndice(arquivoDados, 
+                                        arquivoIndices, 
+                                        criterio->criterios->idAttack);
+            } else {
+                FILA *indices = RertornaIndicesDadoCriterio(arquivoDados,
+                                                            arquivoIndices,
+                                                            criterio);
+                if(fila_vazia(indices)) DispararErro(ErroRegistroInexistente());
+                else {
+                    while(!fila_vazia(indices)){
+                        int indice = fila_remover(indices);
+                        
+                        ExibirRegistroDadoIndice(arquivoDados, 
+                                                arquivoIndices, 
+                                                indice);
+                        
+                    }
+                }
+
+                fila_apagar(&indices);
+            }
+
+            printf("**********\n");
+
+            // Apagar registro filtro
+            ApagarCriterio(&criterio);
+        }
+        // Fechar arquivo
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoDados);
+    nomeArquivoDados = NULL;
+    free(nomeArquivoIndice);
+    nomeArquivoIndice = NULL;
+
+    return;
+}
+
+void FUNCIONALIDADE10(void){
+    // Ler nome do arquivo de dados.
+    char *nomeArquivoDados = LerString();
+    // Ler nome do arquivo de índice.
+    char *nomeArquivoIndice = LerString();
+
+    // Abrir arquivos de entrada
+    FILE *arquivoDados = fopen(nomeArquivoDados, "rb+");
+    FILE *arquivoIndices = fopen(nomeArquivoIndice, "rb+");
+
+    // Quantidades de remoções a serem realizadas
+    int quantInsert;
+    scanf("%d\n", &quantInsert);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantInsert--){
+            // Ler entrada da inserção.
+            REGISTRO *reg = CriarRegistroVazio();
+
+            // Ler campos fixos
+            scanf("%d", &reg->idAttack);
+            reg->year = LerCampoInteiro();
+            reg->financialLoss = LerCampoFloat();
+
+            // Ler Campos variáveis
+            reg->country = LerStringComAspas();
+            if(reg->country != NULL) 
+                reg->tamanhoRegistro += strlen(reg->country) + 2;
+
+            reg->attackType = LerStringComAspas();
+            if(reg->attackType != NULL) 
+                reg->tamanhoRegistro += strlen(reg->attackType) + 2;
+
+            reg->targetIndustry = LerStringComAspas();
+            if(reg->targetIndustry != NULL) 
+                reg->tamanhoRegistro += strlen(reg->targetIndustry) + 2;
+
+            reg->defenseMechanism = LerStringComAspas();
+            if(reg->defenseMechanism != NULL) 
+                reg->tamanhoRegistro += strlen(reg->defenseMechanism) + 2;
+
+            InserirRegistroIndice(arquivoDados, arquivoIndices, reg);
+            
+            ApagarRegistro(&reg);
+        }
+        // Fechar arquivo
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoDados);
+        binarioNaTela(nomeArquivoIndice);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoDados);
+    nomeArquivoDados = NULL;
+    free(nomeArquivoIndice);
+    nomeArquivoIndice = NULL;
+
+    return;
+}
+
+void FUNCIONALIDADE11(void){
+    // Ler nome do arquivo de dados.
+    char *nomeArquivoDados = LerString();
+    // Ler nome do arquivo de índice.
+    char *nomeArquivoIndice = LerString();
+
+    // Abrir arquivos de entrada
+    FILE *arquivoDados = fopen(nomeArquivoDados, "rb+");
+    FILE *arquivoIndices = fopen(nomeArquivoIndice, "rb+");
+
+    // Quantidades de atualizações a serem realizadas
+    int quantUpdate;
+    scanf("%d\n", &quantUpdate);
+
+    // Verificar se arquivo de entrada existe
+    if(arquivoDados == NULL || arquivoIndices == NULL){
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+        // Dispara mensagem de erro
+        DispararErro(ErroProcessamentoArquivo());
+    } else {
+        while(quantUpdate--){
+            // Le os criterios a serem avaliados
+            CRITERIO *criterio = DefinirCriterio();
+            CRITERIO *valoresAtualizados = DefinirCriterio();
+
+            if(criterio->temIdAttack){
+                // Atualizar registros
+                AtualizarRegistroDadoIndice(arquivoDados,
+                                            arquivoIndices,
+                                            criterio->criterios->idAttack, 
+                                            valoresAtualizados);
+            } else {
+                FILA *indices = RertornaIndicesDadoCriterio(arquivoDados,
+                                                            arquivoIndices,
+                                                            criterio);
+                while(!fila_vazia(indices)){
+                    int indice = fila_remover(indices);
+
+                    // Atualizar registros
+                    AtualizarRegistroDadoIndice(arquivoDados,
+                                                arquivoIndices,
+                                                indice, 
+                                                valoresAtualizados);
+                }
+
+                fila_apagar(&indices);
+            }
+
+            // Apagar registro criterio
+            ApagarCriterio(&criterio);
+            ApagarCriterio(&valoresAtualizados);
+        }
+        // Fechar arquivo
+        FecharArquivo(&arquivoDados);
+        FecharArquivo(&arquivoIndices);
+
+        // Executar função fornecida para  
+        // mostrar a saída do arquivo ataques.bin
+        binarioNaTela(nomeArquivoDados);
+        binarioNaTela(nomeArquivoIndice);
+    }   
+
+    // Liberar memória 
+    free(nomeArquivoDados);
+    nomeArquivoDados = NULL;
+    free(nomeArquivoIndice);
+    nomeArquivoIndice = NULL;
+
+    return;
+}
+

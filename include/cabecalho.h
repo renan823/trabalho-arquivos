@@ -61,4 +61,20 @@
         int nroRegRem
     );
 
+    // Cabeçalho Indice
+    typedef struct cabecalho_arvoreb CABECALHO_ARVOREB;
+    struct cabecalho_arvoreb {
+        char status; // 1 byte
+        int noRaiz; // 4 bytes
+        int proxRRN; // 4 bytes
+        int nroNos; // 4 bytes
+        char lixo[31]; // 31 bytes
+    };
+
+    CABECALHO_ARVOREB *CriarCabecalhoIndicePadrao(void);
+    void ApagarCabecalhoIndice(CABECALHO_ARVOREB **c);
+    CABECALHO_ARVOREB *LerCabecalhoIndice(FILE **arquivo);
+    void EscreverCabecalhoIndice(FILE **arquivo, CABECALHO_ARVOREB *c);
+    void ImprimirCabecalhoIndice(CABECALHO_ARVOREB *c);
+
 #endif

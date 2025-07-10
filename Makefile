@@ -12,7 +12,7 @@ FLAGS = -Wall -std=c99 -pedantic -I$(INCLUDE)
 APP = programaTrab
 
 # All .o files 
-OBJECTS = cabecalho.o registro.o erros.o utils.o criterio.o SQL.o indice.o
+OBJECTS = cabecalho.o registro.o erros.o utils.o criterio.o SQL.o indice.o fila.o arvoreb.o
 
 all: $(OBJECTS) main.o
 	$(CC) $(FLAGS) $(OBJECTS) main.o -o $(APP)
@@ -41,6 +41,12 @@ SQL.o:
 indice.o:
 	$(CC) $(FLAGS) -c $(SOURCE)/indice.c -o indice.o
 
+arvoreb.o:
+	$(CC) $(FLAGS) -c $(SOURCE)/arvoreb.c -o arvoreb.o
+
+fila.o:
+	$(CC) $(FLAGS) -c $(SOURCE)/fila.c -o fila.o
+
 run:
 	./$(APP)
 
@@ -52,4 +58,8 @@ indice_test.o:
 
 test: $(OBJECTS) indice_test.o
 	$(CC) $(FLAGS) indice_test.o $(OBJECTS) -o test
+	
+mem_test%: exec/%.in | results
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./programaTrab < $< 2>results/summary$*.log
+
 	

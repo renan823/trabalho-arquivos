@@ -36,4 +36,5 @@
     // Le String com aspas e retorna NULL se campo NULO.
     char *LerCampoStringComAspas(void); 
 
+    void FecharArquivo(FILE **arquivo);
 #endif
