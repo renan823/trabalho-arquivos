@@ -39,7 +39,8 @@ int main(){
     InserirArvoreB(arvb, 24, 24);
     InserirArvoreB(arvb, 25, 25);
 
-    RemoverArvoreB(arvb, 17);
+    RemoverArvoreB(arvb, 3);
+    RemoverArvoreB(arvb, 11);
 
     ImprimirArvoreB(arvb);
     

@@ -247,30 +247,38 @@ NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo) {
     return promovido;
 }
 
-/* Retorna um nó adjacente válido para redistribuição, à direita ou à esquerda */
-NO *_ObterNoAdjRedistribuicao(ARVB *arvb, NO *no, int i) {
+/* Retorna um nó adjacente válido para tratar underflow, à direita ou à esquerda */
+NO *_ObterNoAdj(ARVB *arvb, NO *no, int i) {
     // 'no' é o nó pai do filho na posição 'i' que sofreu underflow.
-    NO *noAdj = NULL;
+    NO *noAdjDir = NULL;
+    NO *noAdjEsq = NULL;
+
     // Tenta redistribuição com o irmão à direita, se existir
     if(i < (MAX_FILHOS - 1) && no->filhos[i + 1] != -1){
-        noAdj = _LerNo(arvb, no->filhos[i + 1]);
-        if (noAdj->nroChaves == MIN_CHAVES){
-            _ApagarNo(&noAdj);
-            noAdj = NULL;
+        noAdjDir = _LerNo(arvb, no->filhos[i + 1]);
+        if(noAdjDir->nroChaves > MIN_CHAVES){
+            return noAdjDir;
         }
     } 
     
     // Se a redistribuição com a direita não for possível, tenta com a esquerda
-    if(noAdj == NULL && i > 0 && no->filhos[i - 1] != -1) {
-        noAdj = _LerNo(arvb, no->filhos[i - 1]);
-        if (noAdj->nroChaves == MIN_CHAVES){
-            _ApagarNo(&noAdj);
-            noAdj = NULL;
+    if(noAdjEsq == NULL && i > 0 && no->filhos[i - 1] != -1) {
+        noAdjEsq = _LerNo(arvb, no->filhos[i - 1]);
+        if(noAdjEsq->nroChaves > MIN_CHAVES){
+            _ApagarNo(&noAdjDir);
+            return noAdjEsq;
         }
     }
 
-    return noAdj;
+    // Caso de concatenação
+    if(noAdjDir){
+        _ApagarNo(&noAdjEsq);
+        return noAdjDir;
+    } else {
+        return noAdjEsq;
+    }
 }
+
 
 
 /* Retorna offset do nó sucessor */
@@ -308,7 +316,7 @@ int _RemoverArvoreNo(ARVB *arvb,
                     int chave)
 {
     NO *no = _LerNo(arvb, rrn);
-    int underflow = 0;
+    int underflow = -1;
 
     // Caso base: nó folha
     if(no->tipoNo == FOLHA) {
@@ -350,75 +358,118 @@ int _RemoverArvoreNo(ARVB *arvb,
         // Busca pelo sucessor em caso de troca.
         underflow = _RemoverArvoreNo(arvb, no->filhos[i], chaveBuscada);
         // Caso houver promoção, inseri-lo no nó.
-        if(underflow) {
+        if(underflow != -1) {
+            /* TO-DO trocar i por um nome melhor e ajustar lógica */
             NO *noUnderflow = _LerNo(arvb, no->filhos[i]);
-            NO *noAdj = _ObterNoAdjRedistribuicao(arvb, no, i);
+            NO *noAdj = _ObterNoAdj(arvb, no, i);
             
-            // Caso redistribuição
-            if(noAdj != NULL){
-                int nroChaves = 1 + noUnderflow->nroChaves + noAdj->nroChaves;
-                int *chaves = (int*) malloc(nroChaves * sizeof(int));
-                long int *offsets = (long int*) malloc(nroChaves * sizeof(long int));
-                int *filhos = (int*) malloc((nroChaves + 1) * sizeof(int));
+            // Caso underflow
+            int nroChaves = 1 + noUnderflow->nroChaves + noAdj->nroChaves;
+            int *chaves = (int*) malloc(nroChaves * sizeof(int));
+            long int *offsets = (long int*) malloc(nroChaves * sizeof(long int));
+            int *filhos = (int*) malloc((nroChaves + 1) * sizeof(int));
 
-                int index = 0;
+            int index = 0;
 
-                // Verifica quem está à esquerda
-                bool adjEsquerda = noAdj->chaves[0] < no->chaves[i];
-
-                if (adjEsquerda) {
-                    // ordem: [noAdj] + [chave pai] + [noUnderflow]
-                    // [noAdj]
-                    for (int j = 0; j < noAdj->nroChaves; j++) {
-                        chaves[index] = noAdj->chaves[j];
-                        offsets[index] = noAdj->offsets[j];
-                        filhos[index] = noAdj->filhos[j];
-                        index++;
-                    }
-                    filhos[index] = noAdj->filhos[noAdj->nroChaves];
-                    // [chave pai]
-                    chaves[index] = no->chaves[i];
-                    offsets[index] = no->offsets[i];
+            // Verifica quem está à esquerda
+            printf("Adj: %d || Pai: %d\n", noAdj->chaves[0], no->chaves[i]);  
+            bool adjEsquerda = (noAdj->chaves[0] < no->chaves[i]);
+            _ImprimirNo(no);
+            if (adjEsquerda) {
+                printf("pegamo esquerda\n");
+                // ordem: [noAdj] + [chave pai] + [noUnderflow]
+                // [noAdj]
+                for (int j = 0; j < noAdj->nroChaves; j++) {
+                    chaves[index] = noAdj->chaves[j];
+                    offsets[index] = noAdj->offsets[j];
+                    filhos[index] = noAdj->filhos[j];
                     index++;
-                    // [noUnderflow]
-                    for (int j = 0; j < noUnderflow->nroChaves; j++) {
-                        chaves[index] = noUnderflow->chaves[j];
-                        offsets[index] = noUnderflow->offsets[j];
-                        filhos[index] = noUnderflow->filhos[j];
-                        index++;
-                    }
-                    filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
+                }
+                filhos[index] = noAdj->filhos[noAdj->nroChaves];
+                // [chave pai]
+                chaves[index] = no->chaves[i];
+                offsets[index] = no->offsets[i];
+                index++;
+                // [noUnderflow]
+                for (int j = 0; j < noUnderflow->nroChaves; j++) {
+                    chaves[index] = noUnderflow->chaves[j];
+                    offsets[index] = noUnderflow->offsets[j];
+                    filhos[index] = noUnderflow->filhos[j];
+                    index++;
+                }
+                filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
+            } else {
+                // ordem: [noUnderflow] + [chave pai] + [noAdj]
+                // [noUnderflow]
+                for (int j = 0; j < noUnderflow->nroChaves; j++) {
+                    chaves[index] = noUnderflow->chaves[j];
+                    offsets[index] = noUnderflow->offsets[j];
+                    filhos[index] = noUnderflow->filhos[j];
+                    index++;
+                }
+                filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
+                // [chave pai]
+                chaves[index] = no->chaves[i];
+                offsets[index] = no->offsets[i];
+                index++;
+                // [noAdj]
+                for (int j = 0; j < noAdj->nroChaves; j++) {
+                    chaves[index] = noAdj->chaves[j];
+                    offsets[index] = noAdj->offsets[j];
+                    filhos[index] = noAdj->filhos[j];
+                    index++;
+                }
+                filhos[index] = noAdj->filhos[noAdj->nroChaves];
+            }
+            // Caso concatenação
+            if(noAdj->nroChaves == MIN_CHAVES){
+                int dir = -1;
+                int esq = -1;
+                if(adjEsquerda) {
+                    dir = no->filhos[i];
+                    esq = no->filhos[i - 1];
                 } else {
-                    // ordem: [noUnderflow] + [chave pai] + [noAdj]
-                    // [noUnderflow]
-                    for (int j = 0; j < noUnderflow->nroChaves; j++) {
-                        chaves[index] = noUnderflow->chaves[j];
-                        offsets[index] = noUnderflow->offsets[j];
-                        filhos[index] = noUnderflow->filhos[j];
-                        index++;
-                    }
-                    filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
-                    // [chave pai]
-                    chaves[index] = no->chaves[i];
-                    offsets[index] = no->offsets[i];
-                    index++;
-                    // [noAdj]
-                    for (int j = 0; j < noAdj->nroChaves; j++) {
-                        chaves[index] = noAdj->chaves[j];
-                        offsets[index] = noAdj->offsets[j];
-                        filhos[index] = noAdj->filhos[j];
-                        index++;
-                    }
-                    filhos[index] = noAdj->filhos[noAdj->nroChaves];
+                    dir = no->filhos[i + 1];
+                    esq = no->filhos[i];
                 }
 
+                NO *concatenado = _CriarNo(noAdj->tipoNo);
+                // Apagar informações do nó a direita. 
+                _EscreverNo(arvb, concatenado, dir);
+                // Atualizar cabeçalho
+                arvb->c_arvb->nroNos = arvb->c_arvb->nroNos - 1;
+                // Remover chave do no pai
+                for(int j = i; j < no->nroChaves; j++) {
+                    // desloca chaves em x para dar espaço para k
+                    no->chaves[j] = no->chaves[j + 1];
+                    no->offsets[j] = no->offsets[j + 1];
+                    no->filhos[j + 1] = no->filhos[j + 2];
+                }
+                no->nroChaves = no->nroChaves - 1;
+                // Formar nó concatenado
+                concatenado->nroChaves = nroChaves;
+                for(int j = 0; j < nroChaves; j++){
+                    concatenado->chaves[j] = chaves[j];
+                    concatenado->offsets[j] = offsets[j];
+                    concatenado->filhos[j] = filhos[j];
+                }
+                concatenado->filhos[nroChaves] = filhos[nroChaves];
+
+                for(int j = 0; j < nroChaves; j++){
+                    printf(" %d ", chaves[j]);
+                }
+                printf("\n");
+
+                _EscreverNo(arvb, concatenado, esq);
+
+                if(rrn == arvb->c_arvb->noRaiz){
+                    arvb->c_arvb->noRaiz = esq;
+                    arvb->c_arvb->nroNos = arvb->c_arvb->nroNos - 1;
+                }
+            } else {
                 // Criar novos nós(mesmo nível: tipo =)
                 NO *esq = _CriarNo(noUnderflow->tipoNo);
                 NO *dir = _CriarNo(noUnderflow->tipoNo);
-
-                // Libera os antigos nós
-                _ApagarNo(&noAdj);
-                _ApagarNo(&noUnderflow);
 
                 int meio = (nroChaves - 1) / 2;
                 index = 0;
@@ -460,23 +511,26 @@ int _RemoverArvoreNo(ARVB *arvb,
                 // Libera memória temporária
                 _ApagarNo(&esq);
                 _ApagarNo(&dir);
-                free(chaves);
-                free(offsets);
-                free(filhos);
             }
-
+            // Libera os antigos nós
+            _ApagarNo(&noAdj);
+            _ApagarNo(&noUnderflow);
+            free(chaves); chaves = NULL;
+            free(offsets); offsets = NULL;
+            free(filhos); filhos = NULL;
         } 
 
         // Split em nó intermediário
         if(no->nroChaves < MIN_CHAVES) {
             underflow = rrn;
+        } else {
+            underflow = -1;
         }
     }
 
     _EscreverNo(arvb, no, rrn);
     _ApagarNo(&no);
     no = NULL;
-
     return underflow;
 }
 
@@ -670,8 +724,9 @@ void BuscaEmProfundidade(ARVB *arvb,
 
 void ImprimirArvoreB(ARVB *arvb){
     FILA *fila = fila_criar();
-    int *vis = (int*) calloc((arvb->c_arvb->nroNos), sizeof(int)); 
-    int *dist = (int*) malloc((arvb->c_arvb->nroNos)*sizeof(int)); 
+    // Obter maior RRN
+    int *vis = (int*) calloc((arvb->c_arvb->proxRRN), sizeof(int)); 
+    int *dist = (int*) malloc((arvb->c_arvb->proxRRN)*sizeof(int)); 
     vis[arvb->c_arvb->noRaiz] = 1;
     dist[arvb->c_arvb->noRaiz] = 0;
     fila_inserir(fila, arvb->c_arvb->noRaiz);
@@ -682,6 +737,10 @@ void ImprimirArvoreB(ARVB *arvb){
         printf("Nível: %d || Chaves: ", dist[s]);
         for(int i = 0; i < no->nroChaves; i++){
             printf("%d, ", no->chaves[i]);
+        }
+        printf("|| Filhos: ");
+        for(int i = 0; i <= no->nroChaves; i++){
+            printf("%d, ", no->filhos[i]);
         }
         printf("\n");
         // Chamar adjcentes
