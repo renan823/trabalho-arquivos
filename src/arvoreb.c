@@ -41,6 +41,7 @@ void _ImprimirNo(NO *no);
 NO *_InserirArvoreNo(ARVB *arvb, int rrn, int chave, long int offset);
 NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo);
 long int _BuscarArvoreB(ARVB *arvb, int rrn, int chave);
+int _RemoverArvoreNo(ARVB *arvb, int rrn, int chave);
 void _BuscaEmProfundidade(ARVB *arvb, int rrn, 
                         FILE *arquivoDados, CRITERIO *crit,
                         int *vis, FILA *indices);
@@ -206,7 +207,7 @@ NO *_InserirArvoreNo(ARVB *arvb,
 }
 
 NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo) {
-    int meio = MAX_CHAVES/2;
+    int meio = (MAX_CHAVES - 1)/2;
     NO *novoNO = _CriarNo(tipo);
     arvb->c_arvb->proxRRN++;
     arvb->c_arvb->nroNos++;
@@ -240,11 +241,243 @@ NO *_Split(ARVB *arvb, NO* no, int rrn, int tipo) {
     no->chaves[meio] = -1;
     no->offsets[meio] = -1;
     no->nroChaves--;
-
-    _EscreverNo(arvb, novoNO, arvb->c_arvb->proxRRN - 1);
+    _EscreverNo(arvb, novoNO, (arvb->c_arvb->proxRRN - 1));
     _ApagarNo(&novoNO);
 
     return promovido;
+}
+
+/* Retorna um nó adjacente válido para redistribuição, à direita ou à esquerda */
+NO *_ObterNoAdjRedistribuicao(ARVB *arvb, NO *no, int i) {
+    // 'no' é o nó pai do filho na posição 'i' que sofreu underflow.
+    NO *noAdj = NULL;
+    // Tenta redistribuição com o irmão à direita, se existir
+    if(i < (MAX_FILHOS - 1) && no->filhos[i + 1] != -1){
+        noAdj = _LerNo(arvb, no->filhos[i + 1]);
+        if (noAdj->nroChaves == MIN_CHAVES){
+            _ApagarNo(&noAdj);
+            noAdj = NULL;
+        }
+    } 
+    
+    // Se a redistribuição com a direita não for possível, tenta com a esquerda
+    if(noAdj == NULL && i > 0 && no->filhos[i - 1] != -1) {
+        noAdj = _LerNo(arvb, no->filhos[i - 1]);
+        if (noAdj->nroChaves == MIN_CHAVES){
+            _ApagarNo(&noAdj);
+            noAdj = NULL;
+        }
+    }
+
+    return noAdj;
+}
+
+
+/* Retorna offset do nó sucessor */
+long int _BuscarSucessor(ARVB *arvb, int rrn, int *chave){
+    long int offset = -1;
+    int RRN = rrn;
+    NO *no = NULL;
+    do{
+        if(no != NULL) _ApagarNo(&no);
+        no = _LerNo(arvb, RRN);
+    }while(no->tipoNo != FOLHA);
+
+    *chave = no->chaves[0];
+    offset = no->offsets[0];
+    _ApagarNo(&no);
+    return offset;
+}
+
+
+void RemoverArvoreB(ARVB *arvb, int chave) {
+    if(arvb == NULL) DispararErro(ErroPonteiroInvalido()); 
+
+    int underflow = _RemoverArvoreNo(arvb, arvb->c_arvb->noRaiz, chave);
+    if(underflow){
+        // TO-DO: caso no nó raiz.
+    }
+
+    return;
+}
+
+
+/* Retorna rrn do nó em que houve underflow */
+int _RemoverArvoreNo(ARVB *arvb, 
+                    int rrn, 
+                    int chave)
+{
+    NO *no = _LerNo(arvb, rrn);
+    int underflow = 0;
+
+    // Caso base: nó folha
+    if(no->tipoNo == FOLHA) {
+        // Remover de um nó folha
+        int i = 0;
+        for(; i < no->nroChaves; i++) {
+            // Caso encontre em um nó folha
+            if(chave == no->chaves[i]) {
+                for(int j = i; j < no->nroChaves; j++) {
+                    // desloca chaves em x para dar espaço para k
+                    no->chaves[j] = no->chaves[j + 1];
+                    no->offsets[j] = no->offsets[j + 1];
+                }
+                no->nroChaves = no->nroChaves - 1;
+                break;
+            } 
+        }
+        // Split em nó folha
+        if(no->nroChaves < MIN_CHAVES) {
+            underflow = rrn;
+        }
+    } else {
+        // Caso da chave em nó não folha
+        int chaveBuscada = chave;
+
+        // Continuar busca pela folha a ser inserida
+        int i = 0;
+        while(i < no->nroChaves && chave >= no->chaves[i]) {
+            // Trocar sucessor pela chave, e remover no nó folha.
+            if (chave == no->chaves[i]) {
+                // Salvar sucessor no nó atual.
+                no->offsets[i] = _BuscarSucessor(arvb, 
+                                                no->filhos[i + 1], 
+                                                &chaveBuscada);
+                no->chaves[i] = chaveBuscada;
+            }
+            i++;
+        }
+        // Busca pelo sucessor em caso de troca.
+        underflow = _RemoverArvoreNo(arvb, no->filhos[i], chaveBuscada);
+        // Caso houver promoção, inseri-lo no nó.
+        if(underflow) {
+            NO *noUnderflow = _LerNo(arvb, no->filhos[i]);
+            NO *noAdj = _ObterNoAdjRedistribuicao(arvb, no, i);
+            
+            // Caso redistribuição
+            if(noAdj != NULL){
+                int nroChaves = 1 + noUnderflow->nroChaves + noAdj->nroChaves;
+                int *chaves = (int*) malloc(nroChaves * sizeof(int));
+                long int *offsets = (long int*) malloc(nroChaves * sizeof(long int));
+                int *filhos = (int*) malloc((nroChaves + 1) * sizeof(int));
+
+                int index = 0;
+
+                // Verifica quem está à esquerda
+                bool adjEsquerda = noAdj->chaves[0] < no->chaves[i];
+
+                if (adjEsquerda) {
+                    // ordem: [noAdj] + [chave pai] + [noUnderflow]
+                    // [noAdj]
+                    for (int j = 0; j < noAdj->nroChaves; j++) {
+                        chaves[index] = noAdj->chaves[j];
+                        offsets[index] = noAdj->offsets[j];
+                        filhos[index] = noAdj->filhos[j];
+                        index++;
+                    }
+                    filhos[index] = noAdj->filhos[noAdj->nroChaves];
+                    // [chave pai]
+                    chaves[index] = no->chaves[i];
+                    offsets[index] = no->offsets[i];
+                    index++;
+                    // [noUnderflow]
+                    for (int j = 0; j < noUnderflow->nroChaves; j++) {
+                        chaves[index] = noUnderflow->chaves[j];
+                        offsets[index] = noUnderflow->offsets[j];
+                        filhos[index] = noUnderflow->filhos[j];
+                        index++;
+                    }
+                    filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
+                } else {
+                    // ordem: [noUnderflow] + [chave pai] + [noAdj]
+                    // [noUnderflow]
+                    for (int j = 0; j < noUnderflow->nroChaves; j++) {
+                        chaves[index] = noUnderflow->chaves[j];
+                        offsets[index] = noUnderflow->offsets[j];
+                        filhos[index] = noUnderflow->filhos[j];
+                        index++;
+                    }
+                    filhos[index] = noUnderflow->filhos[noUnderflow->nroChaves];
+                    // [chave pai]
+                    chaves[index] = no->chaves[i];
+                    offsets[index] = no->offsets[i];
+                    index++;
+                    // [noAdj]
+                    for (int j = 0; j < noAdj->nroChaves; j++) {
+                        chaves[index] = noAdj->chaves[j];
+                        offsets[index] = noAdj->offsets[j];
+                        filhos[index] = noAdj->filhos[j];
+                        index++;
+                    }
+                    filhos[index] = noAdj->filhos[noAdj->nroChaves];
+                }
+
+                // Criar novos nós(mesmo nível: tipo =)
+                NO *esq = _CriarNo(noUnderflow->tipoNo);
+                NO *dir = _CriarNo(noUnderflow->tipoNo);
+
+                // Libera os antigos nós
+                _ApagarNo(&noAdj);
+                _ApagarNo(&noUnderflow);
+
+                int meio = (nroChaves - 1) / 2;
+                index = 0;
+
+                // Preenche nó esquerdo
+                for (int j = 0; j < meio; j++) {
+                    esq->chaves[j] = chaves[index];
+                    esq->offsets[j] = offsets[index];
+                    esq->filhos[j] = filhos[index];
+                    esq->nroChaves++;
+                    index++;
+                }
+                esq->filhos[meio] = filhos[index];
+
+                // Atualiza chave no pai
+                no->chaves[i] = chaves[meio];
+                no->offsets[i] = offsets[meio];
+                index++;
+
+                // Preenche nó direito
+                for (int j = 0; j < (nroChaves / 2); j++) {
+                    dir->chaves[j] = chaves[index];
+                    dir->offsets[j] = offsets[index];
+                    dir->filhos[j] = filhos[index];
+                    dir->nroChaves++;
+                    index++;
+                }
+                dir->filhos[nroChaves / 2] = filhos[index];
+
+                // Atualiza os ponteiros de filhos do pai
+                if (adjEsquerda) {
+                    _EscreverNo(arvb, esq, no->filhos[i - 1]);
+                    _EscreverNo(arvb, dir, no->filhos[i]);
+                } else {
+                    _EscreverNo(arvb, esq, no->filhos[i]);
+                    _EscreverNo(arvb, dir, no->filhos[i + 1]);
+                }
+
+                // Libera memória temporária
+                _ApagarNo(&esq);
+                _ApagarNo(&dir);
+                free(chaves);
+                free(offsets);
+                free(filhos);
+            }
+
+        } 
+
+        // Split em nó intermediário
+        if(no->nroChaves < MIN_CHAVES) {
+            underflow = rrn;
+        }
+    }
+
+    _EscreverNo(arvb, no, rrn);
+    _ApagarNo(&no);
+    no = NULL;
+
+    return underflow;
 }
 
 void ApagarArvoreB(ARVB **arvb) {
@@ -399,11 +632,11 @@ Executa busca em profundidade em um árvore B,
 Guarda os indices dos nós buscados dado um critério
 */
 void BuscaEmProfundidade(ARVB *arvb, 
-                          int rrn, 
-                          FILE *arquivoDados,
-                          CRITERIO *crit,
-                          int *vis,
-                          FILA *indices) 
+                        int rrn, 
+                        FILE *arquivoDados,
+                        CRITERIO *crit,
+                        int *vis,
+                        FILA *indices) 
 {
     if (rrn == -1 || vis[rrn]) return;
 
@@ -434,6 +667,41 @@ void BuscaEmProfundidade(ARVB *arvb,
 
     _ApagarNo(&no);
 }
+
+void ImprimirArvoreB(ARVB *arvb){
+    FILA *fila = fila_criar();
+    int *vis = (int*) calloc((arvb->c_arvb->nroNos), sizeof(int)); 
+    int *dist = (int*) malloc((arvb->c_arvb->nroNos)*sizeof(int)); 
+    vis[arvb->c_arvb->noRaiz] = 1;
+    dist[arvb->c_arvb->noRaiz] = 0;
+    fila_inserir(fila, arvb->c_arvb->noRaiz);
+    while(!fila_vazia(fila)) {
+        int s = fila_remover(fila);
+        // Processar nó
+        NO *no = _LerNo(arvb, s);
+        printf("Nível: %d || Chaves: ", dist[s]);
+        for(int i = 0; i < no->nroChaves; i++){
+            printf("%d, ", no->chaves[i]);
+        }
+        printf("\n");
+        // Chamar adjcentes
+        for(int i = 0; i <= no->nroChaves; i++){
+            if(vis[no->filhos[i]] || no->filhos[i] == -1) continue;
+            vis[no->filhos[i]] = true;
+            dist[no->filhos[i]] = dist[s] + 1;
+            fila_inserir(fila, no->filhos[i]);
+        }
+        _ApagarNo(&no);
+    }
+
+    // Liberar memória
+    fila_apagar(&fila);
+    free(vis); vis = NULL;
+    free(dist); dist = NULL;
+}
+
+
+
 
 
 

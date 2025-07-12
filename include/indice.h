@@ -4,12 +4,14 @@
     #define FOLHA -1
     #define RAIZ 0
     #define INTERMEDIARIO 1
-    #define TAM_REG_IND 44 // Tamanho do cabeçalho / registro do índice
-    #define MAX_CHAVES 2
-    #define MAX_FILHOS 3
-    #define PTR_ESQ 1
-    #define PTR_MED 2
-    #define PTR_DIR 3
+    #define ORDEM 6
+    #define MAX_CHAVES (ORDEM - 1)
+    #define MIN_CHAVES (ORDEM/2 - 1)
+    #define MAX_FILHOS ORDEM
+    // Tipo do nó(int), nro chaves(int), chaves(int), 
+    // filhos(int), offsets(long int).
+    #define TAM_REG_IND (8 + MAX_CHAVES*4 + MAX_FILHOS*4 + MAX_CHAVES*8) 
+
 
     #include <stdio.h>
     #include "cabecalho.h"
